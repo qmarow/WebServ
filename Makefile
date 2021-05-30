@@ -8,7 +8,7 @@ SRCS =	./CGI/CGI.cpp \
 		./create_response/Response.cpp \
 		./create_response/ErrorPage.cpp \
 		./create_response/Content_type.cpp \
-		./handler_connects/Autoindex.cpp \
+		./create_response/Autoindex.cpp \
 		./handler_connects/Client.cpp \
 		./handler_connects/HandlerConnects.cpp \
 		./parse_confige/ParseConfige.cpp \

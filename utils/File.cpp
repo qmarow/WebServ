@@ -51,10 +51,10 @@ std::string	File::readFile(int fd) {
     char	buffer[2];
     string	text;
 
-    if (_fd == -1) {
+    if (fd == -1) {
         return ("");
     }
-    while (read(_fd, buffer, 1) > 0) {
+    while (read(fd, buffer, 1) > 0) {
         buffer[1] = '\0';
         text += string(buffer);
     }

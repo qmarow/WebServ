@@ -38,9 +38,6 @@ void print_locations(std::string name_location, T location, int count_tab) {
     if (location.is_redirect()) {
         std::cout << tabs << "return: " << location.get_code_redirect() << " | " << location.get_url_redirect() << std::endl;
     }
-    if (location.is_timeout()) {
-        std::cout << tabs << "timeout: " << location.get_timeout() << std::endl;
-    }
     if (location.is_allow_methods()) {
         std::cout << tabs << "allow methods: ";
         for (int i = 0; i < location.get_allow_methods().size(); i++) {

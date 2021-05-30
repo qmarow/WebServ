@@ -87,7 +87,8 @@ private:
     int             parse_code_redirect(vector_string values);
     string          parse_url_redirect(vector_string values);
     vector_string   parse_methods(vector_string values);
-    int             parse_timeout(vector_string values);
+    string          parse_cgi_pass(vector_string values);
+    string          parse_cgi_param(vector_string values);
 };
 
 #endif

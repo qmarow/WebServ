@@ -13,17 +13,14 @@ Server::Server() {
     _error_pages = vector_error_page();
     _keys_locations = vector_string();
     _locations = vector_server();
-    //cgi_pass
-    //cgi_param
-    //internal
+    _cgi_pass = string();
+    _cgi_param = string();
     _redirect = t_redirect();
     _redirect.code = -1;
     _auth_basic = vector_string ();
     //auth_basic_user_file
     _allow_methods = vector_string();
     _cgi_allow_methods = vector_string();
-    //default_method_body
-    _timeout = -1;
 }
 
 Server::Server(const Server &parse_confige) {
@@ -48,16 +45,14 @@ void Server::copy_directive(const Server &server) {
     _index = server._index;
     _autoindex = server._autoindex;
     _error_pages = server._error_pages;
-    //cgi_pass
-    //cgi_param
-    //internal
+    _cgi_pass = server._cgi_pass;
+    _cgi_param = server._cgi_param;
     _redirect = server._redirect;
     _auth_basic = server._auth_basic;
     //auth_basic_user_file
     _allow_methods = server._allow_methods;
     _cgi_allow_methods = server._cgi_allow_methods;
     //default_method_body
-    _timeout = server._timeout;
 }
 
 std::string Server::get_ip(void) {
@@ -134,16 +129,16 @@ std::vector<std::string> Server::get_auth_basic(void) {
     return (_auth_basic);
 }
 
-int Server::get_timeout(void) {
-    return (_timeout);
-}
-
 std::vector<std::string> Server::get_allow_methods(void) {
     return (_allow_methods);
 }
 
 std::vector<std::string> Server::get_cgi_allow_methods(void) {
     return (_cgi_allow_methods);
+}
+
+std::string Server::get_cgi_param(void) {
+    return (_cgi_param);
 }
 
 std::string     Server::get_cgi_pass() {
@@ -203,9 +198,7 @@ void Server::set_auth_basic(vector_string auth_basic) {
     _auth_basic = auth_basic;
 }
 
-void  Server::set_timeout(int timeout) {
-    _timeout = timeout;
-}
+
 
 void  Server::set_allow_methods(vector_string methods) {
     for (int i = 0; i < methods.size(); i++) {
@@ -252,6 +245,10 @@ void  Server::set_cgi_deny_methods(vector_string methods) {
 
 void    Server::set_cgi_pass(string cgi_pass) {
     _cgi_pass = cgi_pass;
+}
+
+void    Server::set_cgi_param(string cgi_param) {
+    _cgi_param = cgi_param;
 }
 
 bool Server::is_max_body_size(void) {
@@ -302,6 +299,11 @@ bool Server::is_redirect(void) {
     return (_redirect.code != -1);
 }
 
-bool Server::is_timeout(void) {
-    return (_timeout != -1);
+bool Server::is_cgi_pass(void) {
+    return (_cgi_pass.size() != 0);
 }
+
+bool Server::is_cgi_param(void) {
+    return (_cgi_param.size() != 0);
+}
+

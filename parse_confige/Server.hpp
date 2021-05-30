@@ -28,15 +28,12 @@ private:
     vector_string       _keys_locations;
     vector_server       _locations;
     string              _cgi_pass;
-    //cgi_param
-    //internal
-    t_redirect            _redirect;
+    string              _cgi_param;
+    t_redirect          _redirect;
     vector_string       _auth_basic;
     //auth_basic_user_file
     vector_string       _allow_methods;
     vector_string       _cgi_allow_methods;
-    //default_method_body
-    int                 _timeout;
 
 public:
     Server();
@@ -58,10 +55,10 @@ public:
     vector_string       get_auth_basic(void);
     int                 get_code_redirect(void);
     string              get_url_redirect(void);
-    int                 get_timeout(void);
     vector_string       get_allow_methods(void);
     vector_string       get_cgi_allow_methods(void);
     string              get_cgi_pass(void);
+    string              get_cgi_param(void);
     Server              &get_location(string key_location);
     Server              &get_location(int index);
     vector_string       &get_keys_locations(void);
@@ -77,12 +74,12 @@ public:
     void            set_location(string url, Server &location);
     void            set_redirect(int code, string url);
     void            set_auth_basic(vector_string auth_basic);
-    void            set_timeout(int value);
     void            set_allow_methods(vector_string methods);
     void            set_deny_methods(vector_string methods);
     void            set_cgi_allow_methods(vector_string methods);
     void            set_cgi_deny_methods(vector_string methods);
     void            set_cgi_pass(string cgi_pass);
+    void            set_cgi_param(string cgi_param);
 
     bool            is_max_body_size(void);
     bool            is_root(void);
@@ -95,8 +92,9 @@ public:
     bool            is_allow_methods(void);
     bool            is_cgi_method(string method);
     bool            is_cgi_allow_methods(void);
+    bool            is_cgi_pass(void);
+    bool            is_cgi_param(void);
     bool            is_redirect(void);
-    bool            is_timeout(void);
 
 };
 

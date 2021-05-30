@@ -4,10 +4,10 @@
 // PRIVATE
 
 const char *ParseConfige::_key_words[COUNT_KEY_WORDS] = {"client_max_body_size", "root", "index", "autoindex", "error_page", 
-                                            "location", "cgi_pass", "cgi_param" , "internal", "return", "auth_basic",
+                                            "location", "cgi_pass", "cgi_param" , "return", "auth_basic",
                                             "auth_basic_user_file", "allow_methods", "deny_methods", "server_name",
                                             "cgi_allow_methods", "cgi_deny_methods", "default_method_body",
-                                            "timeout", "unknown", "server", "listen", "}", "{"};
+                                            "unknown", "server", "listen", "}", "{"};
 
 const char *ParseConfige::_type_requests[COUNT_TYPE_REQUESTS] = {"GET", "HEAD", "POST", "PUT", "DELETE"};
 
@@ -135,49 +135,56 @@ void ParseConfige::add_directive(Server &server, vector_string words) {
     vector_string values(words.begin() + 1, words.end() - find_semicolon(words));
     if (words[0] == "client_max_body_size") {
         server.set_max_body_size(this->parse_max_body_size(values));
-    } else if (words[0] == "server_name") {
+    }
+    if (words[0] == "server_name") {
         server.set_server_name(this->parse_server_name(values));
-    } else if (words[0] == "listen") {
+    }
+    if (words[0] == "listen") {
         server.set_ip(this->parse_ip(values));
         server.set_port(this->parse_port(values));
-    } else if (words[0] == "root") {
+    }
+    if (words[0] == "root") {
         server.set_root(this->parse_root(values));
-    } else if (words[0] == "index") {
+    }
+    if (words[0] == "index") {
         server.set_index(this->parse_index(values));
-    } else if (words[0] == "autoindex") {
+    }
+    if (words[0] == "autoindex") {
         server.set_autoindex(this->parse_autoindex(values));
-    } else if (words[0] == "error_page") {
+    }
+    if (words[0] == "error_page") {
         vector_int cods = this->parse_cods_error_page(values);
         string file = this->parse_file_error_page(values);
         server.set_error_page(cods, file);
-    } else if (words[0] == "location") {
-
-    } else if (words[0] == "cgi_pass") {
-        server.set_cgi_pass(words[1]);
-    } else if (words[0] == "cgi_param") {
-
-    } else if (words[0] == "internal") {
-
-    } else if (words[0] == "return") {
+    }
+    if (words[0] == "cgi_pass") {
+        server.set_cgi_pass(this->parse_cgi_pass(values));
+    }
+    if (words[0] == "cgi_param") {
+        server.set_cgi_param(this->parse_cgi_param(values));
+    }
+    if (words[0] == "return") {
         int code = this->parse_code_redirect(values);
         string url = this->parse_url_redirect(values);
         server.set_redirect(code, url);
-    } else if (words[0] == "auth_basic") {
+    }
+    if (words[0] == "auth_basic") {
         // server
-    } else if (words[0] == "auth_basic_user_file") {
+    }
+    if (words[0] == "auth_basic_user_file") {
 
-    } else if (words[0] == "allow_methods") {
+    }
+    if (words[0] == "allow_methods") {
         server.set_allow_methods(this->parse_methods(values));
-    } else if (words[0] == "deny_methods") {
+    }
+    if (words[0] == "deny_methods") {
         server.set_deny_methods(this->parse_methods(values));
-    } else if (words[0] == "cgi_allow_methods") {
+    }
+    if (words[0] == "cgi_allow_methods") {
         server.set_cgi_allow_methods(this->parse_methods(values));
-    } else if (words[0] == "cgi_deny_methods") {
+    }
+    if (words[0] == "cgi_deny_methods") {
         server.set_cgi_deny_methods(this->parse_methods(values));
-    } else if (words[0] == "default_method_body") {
-
-    } else if (words[0] == "timeout") {
-        server.set_timeout(this->parse_timeout(values));
     }
 }
 
@@ -353,16 +360,21 @@ vector_string   ParseConfige::parse_methods(vector_string values) {
     return (values);
 }
 
-int             ParseConfige::parse_timeout(vector_string values) {
+string          ParseConfige::parse_cgi_pass(vector_string values) {
     if (values.size() != 1) {
         throw DirectiveIncorrectlyException();
     }
-    int value = std::atoi(values[0].c_str());
-    if (value < 0) {
+    return (values[0]);
+}
+
+string          ParseConfige::parse_cgi_param(vector_string values) {
+    if (values.size() != 1) {
         throw DirectiveIncorrectlyException();
     }
-    return (value);
+    return (values[0]);
 }
+
+
 
 // PUBLIC
 
