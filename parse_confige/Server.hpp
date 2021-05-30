@@ -97,6 +97,7 @@ public:
     bool            is_cgi_allow_methods(void);
     bool            is_redirect(void);
     bool            is_timeout(void);
+    bool            is_authorization(void);
 
 };
 

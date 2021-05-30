@@ -96,12 +96,18 @@ std::string		Client::shape_the_response(Request &request, URL &url) {
 		return (autoindex_run(server, url, shredded_url));
 	} else if (server.is_index()) {
 		return (index_run(server));
-	} else {
+	} else if (server.is_authorization()) {
+	    return ()
+	}else {
 		return (error_run(server, 404));
 	}
 }
 
 void		cgi_run() {
+
+}
+
+std::string     Client::authorization_run() {
 
 }
 

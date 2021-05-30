@@ -305,3 +305,7 @@ bool Server::is_redirect(void) {
 bool Server::is_timeout(void) {
     return (_timeout != -1);
 }
+
+bool Server::is_authorization(void){
+    return ();
+}
