@@ -1,0 +1,85 @@
+#include "ErrorPage.hpp"
+
+ErrorPage::ErrorPage() {
+    _errors_page_config = std::vector<t_error_page>();
+    _root_error_page = std::string();
+}
+
+ErrorPage::~ErrorPage() {
+
+}
+
+ErrorPage::ErrorPage(ErrorPage const &x) {
+    *this = x;
+}
+
+ErrorPage   &ErrorPage::operator=(ErrorPage const &x) {
+    _errors_page_config = x._errors_page_config;
+    _root_error_page = x._root_error_page;
+    return (*this);
+}
+
+int         ErrorPage::_codes_errors[COUNT_ERROR_PAGE] = {
+    400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411,
+    412, 413, 414, 415, 416, 417, 500, 501, 502, 503, 504, 505
+};
+
+std::string ErrorPage::_codes_names[CONTENT_TYPE_HPP] = {
+        "Bad Request", "Unauthorized", "Payment Required", "Forbidden",
+        "Not Found", "Method Not Allowed", "Not Acceptable",
+        "Proxy Authentication Required", "Request Timeout", "Conflict",
+        "Gone", "Length Required", "Precondition Failed", "Request Entity Too Large",
+        "Request-URI Too Long", "Unsupported Media Type", "Requested Range Not Satisfiable",
+        "Expectation Failed", "Internal Server Error",
+        "Not Implemented", "Bad Gateway", "Service Unavailable",
+        "Gateway Timeout", "HTTP Version Not Supported"
+};
+
+void            ErrorPage::set_code_error(int code_error) {
+    _code_error = code_error;
+}
+
+void            ErrorPage::set_error_pages(std::vector<t_error_page> errors_page_config) {
+    _errors_page_config = errors_page_config;
+}
+
+void            ErrorPage::set_root_error_page(std::string root) {
+    _root_error_page = root;
+}
+
+std::string     ErrorPage::get_error_page(void) {
+    std::string result;
+
+    if (!(_errors_page_config.empty() || _root_error_page.empty())) {
+        int     i = 0;
+        File    tool_for_file;
+        for (; i < _errors_page_config.size(); i++) {
+            if (_errors_page_config[i].code == _code_error) {
+                break ;
+            }
+        }
+        tool_for_file.openFile(_root_error_page, _errors_page_config[i].file);
+        result = tool_for_file.readFile();
+        tool_for_file.closeFile();
+        return (result);
+    }
+    for (int i = 0; i < COUNT_ERROR_PAGE; i++){
+        if (_codes_errors[i] == _code_error) {
+            result = create_error_page(_code_error, _codes_names[i]);
+            break ;
+        }
+    }
+    return (result);
+}
+
+std::string     ErrorPage::create_error_page(int code_error, std::string name_error) {
+    std::string html = "<html>";
+    html +=     "<head>";
+    html +=     "</head>";
+    html +=     "<body>";
+    html +=         "<h1>Error: " + std::to_string(code_error) + "</h1>";
+    html +=             "<h2>" + name_error + "</h2>";
+    html +=     "</body>";
+    html += "</html>";
+    return (html);
+}
