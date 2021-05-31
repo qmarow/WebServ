@@ -98,6 +98,7 @@ public:
     bool            is_redirect(void);
     bool            is_timeout(void);
     bool            is_authorization(void);
+    bool            is_registration(string body);
 
 };
 

@@ -1,0 +1,23 @@
+<form action="http://foo.com" method="post">
+  <div>
+    <label for="say">Login</label>
+    <input name="login" id="say" value="name">
+  </div>
+  <div>
+    <label for="to">Password</label>
+    <input name="password" id="to" value="pss" type="password">
+    <text name="reg" id="reg" value="">
+  </div>
+  <div>
+    <button>Registration</button>
+  </div>
+</form>
+
+<!-- В этом случае запрос будет выглядеть следующим образом-->
+
+<!--POST / HTTP/2.0-->
+<!--Host: foo.com-->
+<!--Content-Type: application/x-www-form-urlencoded-->
+<!--Content-Length: 13-->
+
+<!--say=Hi&to=Mom-->

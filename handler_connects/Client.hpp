@@ -49,6 +49,8 @@ public:
 
 private:
 	string		shape_the_response(Request &request, URL &url);
+	string      registration_run(string body);
+	string      authorization_run();
 	string		index_run(Server &server);
 	string		autoindex_run(Server &server, URL &url, vector_string shredded_url);
 	string		redirect_run(Server &server);

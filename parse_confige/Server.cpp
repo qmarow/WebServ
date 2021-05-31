@@ -307,5 +307,32 @@ bool Server::is_timeout(void) {
 }
 
 bool Server::is_authorization(void){
-    return ();
+    return (true);
+}
+
+bool Server::is_registration(string body){
+    string tmp = "Registration";
+    int i = 0;
+    for (; body[i] != '\n'; i++) {
+        if (body[i] != tmp[i]) {
+            return (false);
+        }
+    }
+    i += 2;
+    tmp = "Login";
+    for (; body[i] != ':'; i++) {
+        if (body[i] != tmp[i]) {
+            return (false);
+        }
+    }
+    for (; body[i] != '\n'; i++) {
+    }
+    ++i;
+    tmp = "Password";
+    for (; body[i] != ':'; i++) {
+        if (body[i] != tmp[i]) {
+            return (false);
+        }
+    }
+    return (true);
 }

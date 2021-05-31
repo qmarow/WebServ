@@ -94,10 +94,12 @@ std::string		Client::shape_the_response(Request &request, URL &url) {
 		return (redirect_run(server));
 	} else if (server.is_autoindex()) {
 		return (autoindex_run(server, url, shredded_url));
-	} else if (server.is_index()) {
+	} else if (server.is_registration(request.get_body())){
+	    return (registration_run(request.get_body()))
+	}else if (server.is_index()) {
 		return (index_run(server));
 	} else if (server.is_authorization()) {
-	    return ()
+//	    return ()
 	}else {
 		return (error_run(server, 404));
 	}
@@ -109,6 +111,20 @@ void		cgi_run() {
 
 std::string     Client::authorization_run() {
 
+}
+
+std::string     Client::registration_run(string body)  {
+    string data;
+    int i = 14;
+    for (; body[i] != 0; i++){
+        data += body[i];
+    }
+
+    int fd = open("./../other/user_data.txt", O_RDONLY);
+    string tmp = File::readFile(read_fd);
+    tmp = tmp + "\n\n" + data;
+    fd = open("./../other/user_data.txt", O_WRONLY);
+    write(fd, tmp.c_str(), tmp.size());
 }
 
 Server& Client::find_location(Server &server, vector_string &shredded_url) {
