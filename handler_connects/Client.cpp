@@ -96,7 +96,9 @@ std::string		Client::shape_the_response(Request &request, URL &url) {
 		return (autoindex_run(server, url, shredded_url));
 	} else if (server.is_index()) {
 		return (index_run(server));
-	} else {
+	} else if (server.is_authorization()) {
+	    // return ()
+	}else {
 		return (error_run(server, 404));
 	}
 }
@@ -104,6 +106,10 @@ std::string		Client::shape_the_response(Request &request, URL &url) {
 void		cgi_run() {
 
 }
+
+// std::string     Client::authorization_run() {
+
+// }
 
 Server& Client::find_location(Server &server, vector_string &shredded_url) {
 	vector_string keys_locations;

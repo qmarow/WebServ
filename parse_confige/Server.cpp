@@ -307,3 +307,6 @@ bool Server::is_cgi_param(void) {
     return (_cgi_param.size() != 0);
 }
 
+bool Server::is_authorization(void){
+    return (true);
+}
