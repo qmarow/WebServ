@@ -97,17 +97,20 @@ void		Client::shape_the_response(void) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
 		error_run(server, 405);
+	} else if (_request.get_method() == "DELETE") {
+		method_delete_run(server, shredded_url);
 	} else if (server.is_redirect()) {
 		redirect_run(server);
 	} else if (server.is_autoindex()) {
 		autoindex_run(server, shredded_url);
-	} else if (server.is_registration(_request.get_body())){
+	} else if (server.is_registration(_request.get_body())) {
 	    registration_run(_request.get_body());
 	} else if (server.is_index()) {
 		index_run(server);
 	} else if (server.is_authorization() && false) {
 
 	} else {
+		std::cout << "flag1\n";
 		error_run(server, 404);
 	}
 }
@@ -120,6 +123,25 @@ void		cgi_run() {
 
 // }
 
+void			Client::method_delete_run(Server &server, vector_string shredded_path) {
+	File			file;
+	vector_string	shredded_root_path;
+
+	if (server.is_root()) {
+		shredded_root_path.push_back(server.get_root());
+	}
+	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	if (file.open_file(shredded_root_path) != 0) {
+		error_run(server, 404);
+		return ;
+	}
+	if (file.delete_file() != 0) {
+		error_run(server, 500);
+		return ;
+	}
+	_response.set_code_status(200);
+}
+
 std::string     Client::registration_run(string body)  {
     string data;
     int i = 14;
@@ -128,7 +150,7 @@ std::string     Client::registration_run(string body)  {
     }
 
     int fd = open("./../other/user_data.txt", O_RDONLY);
-    string tmp = File::readFile(fd);
+    string tmp = File::read_file(fd);
     tmp = tmp + "\n\n" + data;
     fd = open("./../other/user_data.txt", O_WRONLY);
     write(fd, tmp.c_str(), tmp.size());
@@ -191,13 +213,13 @@ void		Client::index_run(Server &server) {
 	string		text;
 	int			code_error;
 	
-	code_error = file.openFile(server.get_root(), server.get_index()[0]);
+	code_error = file.open_file(server.get_root(), server.get_index()[0]);
 	if (code_error > 0) {
 		error_run(server, 404);
 		return ;
 	}
-	text = file.readFile();
-	file.closeFile();
+	text = file.read_file();
+	file.close_file();
 	_response.set_code_status(200);
 	_response.set_body_message(text);
 }
@@ -210,7 +232,7 @@ void		Client::autoindex_run(Server &server, vector_string shredded_url) {
 	Response		response;
 	File			file;
 	string			text;
-	
+
 	shredded_url_location = split_line(_url.get_path(), "/");
 	shredded_url_location = vector_string(shredded_url_location.begin(),
 							shredded_url_location.end() - shredded_url.size());
@@ -218,14 +240,16 @@ void		Client::autoindex_run(Server &server, vector_string shredded_url) {
 	url_location = glue_link(shredded_url_location);
 
 	if (is_directory("./" + directory) == false) {
-		file.openFile(server.get_root(), directory);
-		text = file.readFile();
-		file.closeFile();
+		file.open_file(server.get_root(), directory);
+		text = file.read_file();
+		file.close_file();
+		_response.set_expansion("plain");
 	} else {
 		autoindex.set_url_location(url_location);
 		autoindex.set_root(server.get_root());
 		autoindex.set_directory(directory);
 		text = autoindex.get_html();
+		_response.set_expansion("html");
 	}
 	_response.set_code_status(200);
 	_response.set_body_message(text);

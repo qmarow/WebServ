@@ -90,7 +90,7 @@ char    *CGI::start_cgi() {
     pid_t pid;
 //    File    buf_file;
 
-//    buf_file.openFile("./CGI", "BUFFER.txt");
+//    buf_file.open("./CGI", "BUFFER.txt");
 
     if ((pipe(pipes)) <= 0)
         std::cout << "Error: pipe\n";
@@ -116,7 +116,7 @@ char    *CGI::start_cgi() {
     int status;
     waitpid(pid, &status, 0);
 
-    string  res = File::readFile(pipes[0]);
+    string  res = File::read_file(pipes[0]);
     close(pipes[0]);
     close(pipes[1]);
     return (const_cast<char*>(res.c_str()));

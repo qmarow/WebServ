@@ -58,6 +58,7 @@ public:
 
 private:
 	void		shape_the_response(void);
+	void		method_delete_run(Server &server, vector_string shredded_url);
 	string      registration_run(string body);
 	string      authorization_run();
 	void		index_run(Server &server);

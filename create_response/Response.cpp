@@ -77,13 +77,13 @@ string      Response::header_content_type() {
     std::vector<string> methodes_requeste = _request.get_values_header("Accept-Charset");
 
     if (_expansion != string()) {
-        result = result + type.get_type(_expansion);
+        result += type.get_type(_expansion);
     }
-    if (methodes_requeste.empty()) {
+    if (methodes_requeste.empty() == false) {
         result += "; charset=";
         result += methodes_requeste[0];
     }
-    return (string("Content-Type: ") + "\n");
+    return (result + "\n");
 }
 
 string      Response::header_content_language() {
@@ -170,11 +170,12 @@ string Response::shape_the_response() {
         response += get_body_message();
     } else if (_request.get_method() == "HEAD") {
         response += create_headers();
-    } else if (_request.get_method() == "POST") {
-
-    } else if (_request.get_method() == "PUT") {
-        
     }
+    // else if (_request.get_method() == "POST") {
+
+    // } else if (_request.get_method() == "DELETE") {
+
+    // }
     return (response);
 }
 
@@ -193,7 +194,9 @@ string Response::create_headers() {
     // response += header_server();
     // response += header_last_modified("название файла");
     // response += header_content_lenght();
-    // response += header_content_type();
+    std::cout << "flag5\n";
+    response += header_content_type();
+    std::cout << "flag6\n";
     // response += header_content_language();
     // response += header_allow();
     // response += header_content_location();

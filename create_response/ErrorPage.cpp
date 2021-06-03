@@ -60,9 +60,9 @@ std::string     ErrorPage::get_error_page(void) {
                 break ;
             }
         }
-        tool_for_file.openFile(_root_error_page, _errors_page_config[i].file);
-        result = tool_for_file.readFile();
-        tool_for_file.closeFile();
+        tool_for_file.open_file(_root_error_page, _errors_page_config[i].file);
+        result = tool_for_file.read_file();
+        tool_for_file.close_file();
         return (result);
     }
     for (int i = 0; i < COUNT_ERROR_PAGE; i++){
