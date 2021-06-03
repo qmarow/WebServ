@@ -1,7 +1,7 @@
 #include "Response.hpp"
 
 Response::Response(): _response(std::string()), _body_message(std::string()),  _request(Request()),
-_code_status(int()), _url(string()), _expansion(string()){
+_code_status(int()), _url(string()), _expansion(string()), _is_authorization(false){
 }
 
 Response::~Response() {}
@@ -20,6 +20,7 @@ Response    &Response::operator=(const Response &x) {
     _server = x._server;
     _redirect = x._redirect;
     _error_page = x._error_page;
+    _is_authorization = x._is_authorization;
     return (*this);
 }
 
@@ -27,11 +28,18 @@ std::string Response::get_response() {
     return (shape_the_response());
 }
 
+void        Response::set_authorization(bool auth) {
+    _is_authorization = auth;
+}
+
 void        Response::set_body_message(std::string const &body_message) {
     _body_message = body_message;
 }
 
 void        Response::set_code_status(int code_status) {
+    if (code_status >= 400) {
+        _error_page.set_code_error(code_status);
+    }
    _code_status = code_status;
 }
 
@@ -137,6 +145,10 @@ string      Response::header_retry_after() {
     return ("\n");
 }
 
+string      Response::header_www_authenticate() {
+    return ("WWW-Authenticate: Basic realm=\"\", charset=\"UTF-8\"\n");
+}
+
 // void        Response::header_for_GET() {
     
 // }
@@ -171,7 +183,9 @@ string Response::shape_the_response() {
     } else if (_request.get_method() == "HEAD") {
         response += create_headers();
     } else if (_request.get_method() == "POST") {
-
+        response += create_headers();
+        response += "\n\n";
+        response += get_body_message();
     } else if (_request.get_method() == "PUT") {
         
     }
@@ -198,6 +212,9 @@ string Response::create_headers() {
     // response += header_allow();
     // response += header_content_location();
     response += header_location();
+    if (_is_authorization) {
+        response += header_www_authenticate();
+    }
     // response += header_retry_after();
     return (response);
 }

@@ -6,6 +6,7 @@
 #include <map>
 #include "./../utils/UtilsString.hpp"
 #include "./../utils/Structs.hpp"
+#include "./../parse_request/Request.hpp"
 
 
 class Server {
@@ -95,9 +96,9 @@ public:
     bool            is_cgi_pass(void);
     bool            is_cgi_param(void);
     bool            is_redirect(void);
-    bool            is_authorization(void);
+    bool            is_authorization(string body);
     bool            is_registration(string body);
-
+    bool            is_authorization(Request request);
 };
 
 #endif

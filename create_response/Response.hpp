@@ -27,9 +27,11 @@ private:
     Server      _server;
     string      _redirect;
     ErrorPage   _error_page;
+    bool        _is_authorization;
 
 public:
     string  get_response(void);
+    void    set_authorization(bool auth);
     void    set_body_message(const string &body_message);
     void    set_code_status(int code_status);
     void    set_request(const Request &request);
@@ -52,6 +54,7 @@ private:
     string header_content_location(void);
     string header_location(void);
     string header_retry_after(void);
+    string header_www_authenticate(void);
 
     // void header_for_GET(void);
     // void header_for_HEAD(void);

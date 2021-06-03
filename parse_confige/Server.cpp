@@ -307,13 +307,32 @@ bool Server::is_cgi_param(void) {
     return (_cgi_param.size() != 0);
 }
 
-bool Server::is_authorization(void){
+bool Server::is_authorization(string body){
+    string tmp = "Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation";
+    int a = body.find("Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation");
+
+    if (a != 4) {
+        return (false);
+    }
+    int i = 0;
+    for (; i < tmp.size(); i++) {
+        if (tmp[i] != body[a]) {
+            return (false);
+        }
+        ++a;
+    }
+    if (tmp[i] != body[a]) {
+        return (false);
+    }
     return (true);
 }
 
 bool Server::is_registration(string body){
-    string tmp = "Registration";
+    string tmp = "    Registration";
     int i = 0;
+    int a = 0;
+    while (i < 4 && body[i] != 0)
+        ++i;
     for (; body[i] != '\n'; i++) {
         if (body[i] != tmp[i]) {
             return (false);
@@ -322,18 +341,30 @@ bool Server::is_registration(string body){
     i += 2;
     tmp = "Login";
     for (; body[i] != ':'; i++) {
-        if (body[i] != tmp[i]) {
+        if (body[i] != tmp[a]) {
             return (false);
         }
+        ++a;
     }
     for (; body[i] != '\n'; i++) {
     }
     ++i;
     tmp = "Password";
+    a = 0;
     for (; body[i] != ':'; i++) {
-        if (body[i] != tmp[i]) {
+        if (body[i] != tmp[a]) {
             return (false);
         }
+        ++a;
     }
     return (true);
+}
+
+bool            Server::is_authorization(Request request) {
+    std::vector<string> tmp = request.get_values_header("Authorization");
+
+    if (!tmp.empty()) {
+        return (true);
+    }
+    return (false);
 }

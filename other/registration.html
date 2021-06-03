@@ -10,22 +10,29 @@
   <input type="text" name="password" placeholder="Введите пароль" /><br/>
   <input type="submit" name="submit" value="Отправить" />
 </form>
+<form name="authorization" action="http://localhost:8025">
+  <input type="submit" name="submit" value="Войти" />
+</form>
 <script>
   // получаем объект формы
   var form = document.forms.user;
+  var auth = document.forms.authorization;
   // прикрепляем обработчик кнопки
   form.submit.addEventListener("click", sendRequest);
-
+  auth.submit.addEventListener("click", sendAuth);
   // обработчик нажатия
-  function sendRequest(event){
+  function sendAuth(event){
+    event.preventDefault();
+    var request = new XMLHttpRequest();
+    request.open("POST", auth.action);
+    request.send("Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation");
 
+  }
+  function sendRequest(event){
     event.preventDefault();
     var formData = new FormData(form);
-
     var request = new XMLHttpRequest();
-
     request.open("POST", form.action);
-
     // request.onreadystatechange = function () {
     //   if (request.readyState == 4 && request.status == 200)
     //     document.getElementById("output").innerHTML=request.responseText;
