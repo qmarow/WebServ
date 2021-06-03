@@ -5,11 +5,17 @@ class Client;
 
 #include <string>
 #include <fcntl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "./../parse_confige/Server.hpp"
-#include "../utils/File.hpp"
+#include "./../utils/File.hpp"
 #include "./../create_response/Autoindex.hpp"
 #include "./../parse_url/URL.hpp"
 #include "./../utils/Structs.hpp"
+#include "./../parse_request/Request.hpp"
+#include "./../parse_request/ParseRequest.hpp"
+#include "./../create_response/Response.hpp"
+#include "./../create_response/ErrorPage.hpp"
 
 enum	Status {
 	READ,
@@ -34,6 +40,9 @@ private:
 	string					_buffer_request;
 	int						_fd;
 	Server					_server;
+	Response				_response;
+	Request					_request;
+	URL						_url;
 
 public:
 	enum Status			get_status();
@@ -48,13 +57,15 @@ public:
 	void				close_fd(void);
 
 private:
-	string		shape_the_response(Request &request, URL &url);
-	string		index_run(Server &server);
-	string		autoindex_run(Server &server, URL &url, vector_string shredded_url);
-	string		redirect_run(Server &server);
-	bool		check_error_max_body(Server &server, Request &request);
-	bool		check_error_allow_methods(vector_string allow_methods, Request &request);
-	string		error_run(Server &server, int code_error);
+	void		shape_the_response(void);
+	string      registration_run(string body);
+	string      authorization_run();
+	void		index_run(Server &server);
+	void		autoindex_run(Server &server, vector_string shredded_url);
+	void		redirect_run(Server &server);
+	bool		check_error_max_body(Server &server);
+	bool		check_error_allow_methods(vector_string allow_methods);
+	void		error_run(Server &server, int code_error);
 	Server		&find_location(Server &server, vector_string &shredded_url);
 	int			find_count_coincidence(vector_string shredded_url_location,
 										vector_string shredded_url);

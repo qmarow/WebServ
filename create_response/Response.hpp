@@ -1,10 +1,13 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
+#include "./../parse_request/Request.hpp"
+#include "./../parse_confige/Server.hpp"
 #include "./../utils/UtilsTime.hpp"
 #include "./Content_type.hpp"
 #include "./ErrorPage.hpp"
-#include "./../header.hpp"
+
+class ErrorPage;
 
 class Response{
 public:
@@ -13,6 +16,7 @@ public:
     ~Response();
     Response(Response const &x);
     Response    &operator=(Response const &x);
+
 private:
     string      _response;
     int         _code_status;
@@ -22,34 +26,37 @@ private:
     Request     _request;
     Server      _server;
     string      _redirect;
+    ErrorPage   _error_page;
 
 public:
-    string  get_response();
-    void    set_body_message(string const &body_message);
+    string  get_response(void);
+    void    set_body_message(const string &body_message);
     void    set_code_status(int code_status);
-    void    set_request(Request const &request);
-    void    set_url(string const &url);
+    void    set_request(const Request &request);
+    void    set_error_page(ErrorPage &error_page);
+    void    set_url(const string &url);
     void    set_url_redirect(const string &redirect);
-    void    set_expansion(string const &expansion); // expansion - расширение
-private:
-    string create_header();
-    string header_data();
-    string header_server();
-    string header_last_modified(string name_file);
-    string header_content_lenght();
-    string header_content_type();
-    string header_content_language();
-    string header_allow();
-    string header_content_location();
-    string header_location();
-    string header_retry_after();
+    void    set_expansion(const string &expansion); // expansion - расширение
 
-    void header_for_GET();
-    void header_for_HEAD();
-    void header_for_POST();
-    void header_for_PUT();
-    void header_for_DELETE();
-    // void header_for
+private:
+    string shape_the_response(void);
+    string create_headers(void);
+    string get_body_message(void);
+    string header_data(void);
+    string header_server(void);
+    string header_last_modified(string name_file);
+    string header_content_lenght(void);
+    string header_content_type(void);
+    string header_content_language(void);
+    string header_allow(void);
+    string header_content_location(void);
+    string header_location(void);
+    string header_retry_after(void);
+
+    // void header_for_GET(void);
+    // void header_for_HEAD(void);
+    // void header_for_POST(void);
+    // void header_for_PUT(void);
 };
 
 #endif

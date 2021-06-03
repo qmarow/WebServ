@@ -5,14 +5,18 @@
 Client::Client(): _status(NULLPTR),\
 	_buffer_request(std::string()),\
 	_fd(int()), \
-	_server()
-{};
+	_server(), \
+	_response(Response()), \
+	_request(Request())
+{}
 
 Client::Client(int fd): _status(NULLPTR),\
 	_buffer_request(std::string()),\
 	_fd(fd), \
-	_server()
-{};
+	_server(), \
+	_response(Response()), \
+	_request(Request())
+{}
 
 Client::~Client() {};
 
@@ -20,12 +24,14 @@ Client::Client(Client const &x) {
 	*this = x;
 }
 
-Client	&Client::operator=(Client const &client)
-{
-	this->_buffer_request = client._buffer_request;
+Client	&Client::operator=(Client const &client) {
 	this->_status = client._status;
+	this->_data_socket = client._data_socket;
+	this->_buffer_request = client._buffer_request;
 	this->_fd = client._fd;
 	this->_server = client._server;
+	this->_response = client._response;
+	this->_request = client._request;
 	return (*this);
 }
 
@@ -35,13 +41,13 @@ enum Status	Client::get_status() {
 
 std::string	Client::get_response() {
 	ParseRequest	parser;
-	Request			request;
-	URL				url;
 
 	parser.open(_buffer_request);
-	request = parser.get_request();
-	url.parse(request.get_url_string());
-	return (shape_the_response(request, url));
+	_request = parser.get_request();
+	_url.parse(_request.get_url_string());
+	_response.set_request(_request);
+	shape_the_response();
+	return (_response.get_response());
 }
 
 int			Client::get_fd() {
@@ -78,28 +84,31 @@ void		Client::close_fd(void) {
 
 // PRIVATE
 
-std::string		Client::shape_the_response(Request &request, URL &url) {
-	if (url.get_path() == "favicon.ico") {
-		return ("");
-	}
-	vector_string shredded_url = split_line(url.get_path(), "/");
-	Server &server = find_location(_server, shredded_url);
-	if (check_error_max_body(server, request)) {
-		return (error_run(server, 413));
-	}
-	if (check_error_allow_methods(server.get_allow_methods(), request)) {
-		return (error_run(server, 405));
-	}
-	if (server.is_redirect()) {
-		return (redirect_run(server));
+void		Client::shape_the_response(void) {
+	vector_string	shredded_url;
+	Server	server;
+
+	// if (_url.get_path() == "favicon.ico") {
+	// 	return ;
+	// }
+	shredded_url = split_line(_url.get_path(), "/");
+	server = find_location(_server, shredded_url);
+	if (check_error_max_body(server)) {
+		error_run(server, 413);
+	} else if (check_error_allow_methods(server.get_allow_methods())) {
+		error_run(server, 405);
+	} else if (server.is_redirect()) {
+		redirect_run(server);
 	} else if (server.is_autoindex()) {
-		return (autoindex_run(server, url, shredded_url));
+		autoindex_run(server, shredded_url);
+	} else if (server.is_registration(_request.get_body())){
+	    registration_run(_request.get_body());
 	} else if (server.is_index()) {
-		return (index_run(server));
-	} else if (server.is_authorization()) {
-	    // return ()
-	}else {
-		return (error_run(server, 404));
+		index_run(server);
+	} else if (server.is_authorization() && false) {
+
+	} else {
+		error_run(server, 404);
 	}
 }
 
@@ -110,6 +119,21 @@ void		cgi_run() {
 // std::string     Client::authorization_run() {
 
 // }
+
+std::string     Client::registration_run(string body)  {
+    string data;
+    int i = 14;
+    for (; body[i] != 0; i++){
+        data += body[i];
+    }
+
+    int fd = open("./../other/user_data.txt", O_RDONLY);
+    string tmp = File::readFile(fd);
+    tmp = tmp + "\n\n" + data;
+    fd = open("./../other/user_data.txt", O_WRONLY);
+    write(fd, tmp.c_str(), tmp.size());
+	return ("");
+}
 
 Server& Client::find_location(Server &server, vector_string &shredded_url) {
 	vector_string keys_locations;
@@ -162,27 +186,23 @@ int		Client::find_count_coincidence(vector_string shredded_url_location, vector_
 	return (i);
 }
 
-std::string		Client::index_run(Server &server) {
-	Response	response;
+void		Client::index_run(Server &server) {
 	File		file;
 	string		text;
 	int			code_error;
 	
 	code_error = file.openFile(server.get_root(), server.get_index()[0]);
-	if (code_error == 1) {
-		return (error_run(server, 404));
-	} else if (code_error == 2) {
-		return (error_run(server, 404));
+	if (code_error > 0) {
+		error_run(server, 404);
+		return ;
 	}
 	text = file.readFile();
-	response.set_code_status(200);
-	response.set_body_message(text);
 	file.closeFile();
-	std::cout << response.get_response() << "\n";
-	return (response.get_response());
+	_response.set_code_status(200);
+	_response.set_body_message(text);
 }
 
-std::string		Client::autoindex_run(Server &server, URL &url, vector_string shredded_url) {
+void		Client::autoindex_run(Server &server, vector_string shredded_url) {
 	vector_string	shredded_url_location;
 	string			directory;
 	string			url_location;
@@ -191,7 +211,7 @@ std::string		Client::autoindex_run(Server &server, URL &url, vector_string shred
 	File			file;
 	string			text;
 	
-	shredded_url_location = split_line(url.get_path(), "/");
+	shredded_url_location = split_line(_url.get_path(), "/");
 	shredded_url_location = vector_string(shredded_url_location.begin(),
 							shredded_url_location.end() - shredded_url.size());
 	directory = glue_link(shredded_url);
@@ -207,48 +227,41 @@ std::string		Client::autoindex_run(Server &server, URL &url, vector_string shred
 		autoindex.set_directory(directory);
 		text = autoindex.get_html();
 	}
-	response.set_code_status(200);
-	response.set_body_message(text);
-	return (response.get_response());
+	_response.set_code_status(200);
+	_response.set_body_message(text);
 }
 
-std::string		Client::redirect_run(Server &server) {
-	Response response;
-
-	response.set_code_status(server.get_code_redirect());
-	response.set_url_redirect(server.get_url_redirect());
-	return (response.get_response());
+void		Client::redirect_run(Server &server) {
+	_response.set_code_status(server.get_code_redirect());
+	_response.set_url_redirect(server.get_url_redirect());
 }
 
 void		default_method_body_run() {
 
 }
 
-bool	Client::check_error_max_body(Server &server, Request &request) {
-	if (request.get_body().size() > server.get_max_body_size()) {
+bool	Client::check_error_max_body(Server &server) {
+	if (_request.get_body().size() > server.get_max_body_size()) {
 		return (true);
 	}
 	return (false);
 }
 
-bool	Client::check_error_allow_methods(vector_string allow_methods, Request &request) {
-	if (find_word(allow_methods, request.get_method()) == -1) {
+bool	Client::check_error_allow_methods(vector_string allow_methods) {
+	if (find_word(allow_methods, _request.get_method()) == -1) {
 		return (true);
 	}
 	return (false);
 }
 
-string	Client::error_run(Server &server, int code_error) {
-	Response response;
+void	Client::error_run(Server &server, int code_error) {
 	ErrorPage error_page;
 
 	error_page.set_error_pages(server.get_error_pages());
 	error_page.set_root_error_page(server.get_root());
 	error_page.set_code_error(code_error);
 
-	response.set_code_status(code_error);
-	response.set_body_message(error_page.get_error_page());
-	return (response.get_response());
+	_response.set_error_page(error_page);
 }
 
 string	Client::glue_link(vector_string &shredded_url) {

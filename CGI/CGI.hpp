@@ -2,7 +2,13 @@
 #define CGI_HPP
 
 #include <vector>
-#include "./../header.hpp"
+#include <string>
+#include <unistd.h>
+#include "./../parse_url/URL.hpp"
+#include "./../parse_confige/Server.hpp"
+#include "./../parse_request/Request.hpp"
+#include "./../handler_connects/Client.hpp"
+#include "./../utils/UtilsString.hpp"
 
 class CGI
 {

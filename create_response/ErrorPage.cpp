@@ -3,6 +3,7 @@
 ErrorPage::ErrorPage() {
     _errors_page_config = std::vector<t_error_page>();
     _root_error_page = std::string();
+    _code_error = int();
 }
 
 ErrorPage::~ErrorPage() {
@@ -16,6 +17,7 @@ ErrorPage::ErrorPage(ErrorPage const &x) {
 ErrorPage   &ErrorPage::operator=(ErrorPage const &x) {
     _errors_page_config = x._errors_page_config;
     _root_error_page = x._root_error_page;
+    _code_error = x._code_error;
     return (*this);
 }
 
@@ -24,7 +26,7 @@ int         ErrorPage::_codes_errors[COUNT_ERROR_PAGE] = {
     412, 413, 414, 415, 416, 417, 500, 501, 502, 503, 504, 505
 };
 
-std::string ErrorPage::_codes_names[CONTENT_TYPE_HPP] = {
+std::string ErrorPage::_codes_names[COUNT_ERROR_PAGE] = {
         "Bad Request", "Unauthorized", "Payment Required", "Forbidden",
         "Not Found", "Method Not Allowed", "Not Acceptable",
         "Proxy Authentication Required", "Request Timeout", "Conflict",
@@ -70,6 +72,19 @@ std::string     ErrorPage::get_error_page(void) {
         }
     }
     return (result);
+}
+
+std::string     ErrorPage::get_name_error(void) {
+    for (int i = 0; i < COUNT_ERROR_PAGE; i++) {
+        if (_code_error == _codes_errors[i]) {
+            return (_codes_names[i]);
+        }
+    }
+    return ("");
+}
+
+int             ErrorPage::get_code_error(void) {
+    return (_code_error);
 }
 
 std::string     ErrorPage::create_error_page(int code_error, std::string name_error) {

@@ -12,17 +12,19 @@ Response::Response(Response const &x) {
 
 Response    &Response::operator=(const Response &x) {
     _response = x._response;
-    _body_message = x._body_message;
-    _request = x._request;
     _code_status = x._code_status;
+    _body_message = x._body_message;
     _url = x._url;
     _expansion = x._expansion;
+    _request = x._request;
+    _server = x._server;
+    _redirect = x._redirect;
+    _error_page = x._error_page;
     return (*this);
 }
 
 std::string Response::get_response() {
-    // create_header();
-    return (create_header());
+    return (shape_the_response());
 }
 
 void        Response::set_body_message(std::string const &body_message) {
@@ -49,10 +51,13 @@ void        Response::set_expansion(const std::string &expansion) {
     _expansion = expansion;
 }
 
+void        Response::set_error_page(ErrorPage &error_page) {
+    _error_page = error_page;
+}
+
 string      Response::header_data() {
     return ("Data: " + get_time() + "\n");
 }
-
 
 string      Response::header_server() {
     return (string("Server: WebServ") + "\n");
@@ -132,28 +137,57 @@ string      Response::header_retry_after() {
     return ("\n");
 }
 
-void      Response::header_for_GET() {
+// void        Response::header_for_GET() {
+    
+// }
 
+// void        Response::header_for_HEAD() {
+
+// }
+
+// void        Response::header_for_POST() {
+
+// }
+
+// void        Response::header_for_PUT() {
+
+// }
+
+
+string      Response::get_body_message(void) {
+    if (_error_page.get_name_error() != "") {
+        return (_error_page.get_error_page());
+    }
+    return (_body_message);
 }
 
-void      Response::header_for_HEAD() {
+string Response::shape_the_response() {
+    string response;
 
+    if (_request.get_method() == "GET") {
+        response += create_headers();
+        response += "\n\n";
+        response += get_body_message();
+    } else if (_request.get_method() == "HEAD") {
+        response += create_headers();
+    } else if (_request.get_method() == "POST") {
+
+    } else if (_request.get_method() == "PUT") {
+        
+    }
+    return (response);
 }
 
-void      Response::header_for_POST() {
+string Response::create_headers() {
+    string response;
 
-}
-
-void      Response::header_for_PUT() {
-
-}
-
-void      Response::header_for_DELETE() {
-
-}
-
-std::string Response::create_header() {
-    string response = "HTTP/1.1 " + std::to_string(_code_status) + " OK\n";
+    response = "HTTP/1.1 ";
+    if (_error_page.get_name_error() == "") {
+        response += std::to_string(_code_status) + " OK\n";
+    } else {
+        response += std::to_string(_error_page.get_code_error());
+        response += " " + _error_page.get_name_error() + "\n";
+    }
 
     response += header_data();
     // response += header_server();
@@ -165,7 +199,5 @@ std::string Response::create_header() {
     // response += header_content_location();
     response += header_location();
     // response += header_retry_after();
-    response += "\n\n";
-    response += _body_message;
     return (response);
 }

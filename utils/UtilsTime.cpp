@@ -1,6 +1,6 @@
 #include "UtilsTime.hpp"
 
-string  get_time_last_modified(char const *name_file)
+std::string  get_time_last_modified(char const *name_file)
 {
     FILE *fp;
     struct stat buff;
@@ -20,7 +20,7 @@ string  get_time_last_modified(char const *name_file)
     return (time.str());
 }
 
-string  get_time()
+std::string  get_time()
 {
     time_t t = time(0);   // get time now
     tm* now = localtime(&t);

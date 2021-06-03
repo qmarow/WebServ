@@ -1,9 +1,11 @@
 #ifndef HANDLERCONNECTS_HPP
 #define HANDLERCONNECTS_HPP
 
-#include "./../header.hpp"
 #include "./Client.hpp"
 #include <strings.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 class HandlerConnects {
 public:

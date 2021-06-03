@@ -1,5 +1,8 @@
-#include "header.hpp"
-// #include "./parse_confige/Server.hpp"
+#include <string>
+#include <vector>
+#include "./parse_confige/Server.hpp"
+#include "./parse_confige/ParseConfige.hpp"
+#include "./handler_connects/HandlerConnects.hpp"
 
 int main(int argc, char **argv) {
     std::string         confige;
@@ -8,7 +11,7 @@ int main(int argc, char **argv) {
     HandlerConnects     handler_connects;
 
     if (argc >= 2) {
-        confige = string(argv[1]);
+        confige = std::string(argv[1]);
     } else {
         confige = "./other/configurations/webserv.conf";
     }

@@ -1,11 +1,5 @@
 #include "HandlerConnects.hpp"
 
-// void		ft_error(std::string message)
-// {
-// 	std::cout << message << "\n";
-// 	exit(1);
-// }
-
 HandlerConnects::HandlerConnects()
 {
 	_fds_master = vector_fd();
@@ -114,11 +108,13 @@ void	HandlerConnects::parse_client(Client &client) {
 
 	bzero(&buff, 100);
 
+	std::cout << "RESUEST:\n[\033[32;4;24m";
 	while ((count_read = recv(client.get_fd(), buff, sizeof(buff), 0)) > 0) {
 		buff[count_read] = '\0';
 		client.set_request(buff);
+		std::cout << buff << "\n";
 	}
-	
+	std::cout << "\033[0m]\n";
 	client.set_status(WRITE);
 }
 
@@ -126,6 +122,7 @@ void	HandlerConnects::response_for_client(Client &client) {
 	string	response;
 	
 	response = client.get_response();
+	std::cout << "RESPONSE:\n[\033[31;1;4m" << response << "\n\033[0m";
 	int err = send(client.get_fd(), response.c_str(), response.size(), 0);
 }
 

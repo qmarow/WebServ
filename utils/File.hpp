@@ -1,7 +1,10 @@
 #ifndef FILE_HPP
 #define FILE_HPP
 
-#include "./../header.hpp"
+#include <fcntl.h>
+#include <string>
+#include <unistd.h>
+#include "./../utils/UtilsString.hpp"
 
 class File {
 public:
