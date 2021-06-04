@@ -88,13 +88,15 @@ int             ErrorPage::get_code_error(void) {
 }
 
 std::string     ErrorPage::create_error_page(int code_error, std::string name_error) {
-    std::string html = "<html>";
-    html +=     "<head>";
-    html +=     "</head>";
-    html +=     "<body>";
-    html +=         "<h1>Error: " + std::to_string(code_error) + "</h1>";
-    html +=             "<h2>" + name_error + "</h2>";
-    html +=     "</body>";
-    html += "</html>";
+    std::string html;
+
+    html += "<html>\n";
+    html +=     "\t<head>\n";
+    html +=     "\t</head>\n";
+    html +=     "\t<body>\n";
+    html +=         "\t\t<h1>Error: " + std::to_string(code_error) + "</h1>\n";
+    html +=             "\t\t<h2>" + name_error + "</h2>\n";
+    html +=     "\t</body>\n";
+    html += "</html>\n";
     return (html);
 }

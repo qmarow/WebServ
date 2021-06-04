@@ -1,27 +1,24 @@
 #include "ContentType.hpp"
 
-std::string    ContentType::_type_text[6] = {"css", "csv", "html",
-            "javascript", "plain", "xml"
-   };
-std::string    ContentType::_type_audio[4] = {"mpeg", "x-ms-wma",
-             "vnd.rn-realaudio", "x-wav"
-   };
+std::string    ContentType::_type_text[6] = {"css", "csv", "html", "javascript", "plain", "xml"};
+
+std::string    ContentType::_type_audio[4] = {"mpeg", "x-ms-wma", "vnd.rn-realaudio", "x-wav"};
+
 std::string    ContentType::_type_video[7] = {"mpeg", "mp4", "quicktime",
-            "x-ms-wmv", "x-msvideo", "x-flv", "webm"
-   };
+                                                "x-ms-wmv", "x-msvideo", "x-flv", "webm"};
+
 std::string    ContentType::_type_image[8] = {"gif", "jpeg", "png", "tiff",
-            "vnd.microsoft.icon", "x-icon", "vnd.djvu",
-            "svg+xml"
-   };
-std::string    ContentType::_type_multipart[4] = {"mixed", "alternative",
-            "related", "form-data"
-   };
+                                                "vnd.microsoft.icon", "x-icon", "vnd.djvu", "svg+xml"};
+
+std::string    ContentType::_type_multipart[4] = {"mixed", "alternative", "related", "form-data"};
+
 std::string    ContentType::_type_application[14] = {"java-archive", "EDI-X12",
-            "EDIFACT", "javascript", "octet-stream",
-            "ogg", "pdf", "xhtml+xml", "x-shockwave-flash",
-            "json", "ld+json", "xml", "zip", "x-www-form-urlencoded"
-   };
+                                                    "EDIFACT", "javascript", "octet-stream",
+                                                    "ogg", "pdf", "xhtml+xml", "x-shockwave-flash",
+                                                    "json", "ld+json", "xml", "zip", "x-www-form-urlencoded"};
+
 ContentType::ContentType() {
+
 }
 
 ContentType::~ContentType() {

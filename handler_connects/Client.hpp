@@ -60,7 +60,7 @@ public:
 private:
     bool        check_data_user(string str_in, string str_find);
 	void		shape_the_response(void);
-	void		cgi_run(Server &server);
+	void		cgi_run(Server &server, vector_string shredded_url);
 	void		method_delete_run(Server &server, vector_string shredded_url);
 	void		index_run(Server &server);
 	void        registration_run(string body);

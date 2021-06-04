@@ -107,51 +107,47 @@ void    CGI::set_data_socket_client(sockaddr_t data_socket_client) {
 // }
 
 string  CGI::start() {
-    int             pipes[2];
+    // int             pipes[2];
     int             status;
     pid_t           pid;
-    string          result;
-    string          cgi_file;
+    // string          result;
+    string          cgi_exec;
+    string          cgi_script;
     vector_string   argv;
     char            **argv_c;
     char            **env_c;
+    int             fd_write;
+    int             fd_file;
 
     set_env();
-    cgi_file =  _server.get_cgi_pass();
-    argv.push_back(cgi_file);
-    argv.push_back(_filename_script);
-    if ((pipe(pipes)) <= 0) {
-        std::cout << "Error: pipe\n";
-    }
-    _env.push_back("SCRIPT_FILENAME=" + _filename_script);
+    cgi_exec = "/Users/utoomey/Desktop/WebServ/" + trim_line(_server.get_cgi_pass(), "./");
+    cgi_script = "/Users/utoomey/Desktop/WebServ/" + trim_line(_filename_script, "./");
+    argv.push_back(cgi_exec);
+    argv.push_back(cgi_script);
+    // if ((pipe(pipes)) <= 0) {
+    //     std::cout << "Error: pipe\n";
+    // }
+    _env.push_back("SCRIPT_FILENAME=" + cgi_script);
     argv_c = convert_array_string_to_char(argv);
     env_c = convert_array_string_to_char(_env);
-    std::cout << "cgi_file: " << cgi_file << "\n";
-    print_vector("argv:", argv);
-
+    fd_write = dup(1);
+    fd_file = open("./other/tmp/tmp.txt", O_CREAT | O_WRONLY | O_TRUNC, ~0);
     if ((pid = fork()) < 0) {
         std::cout << "Error: fork\n";
-        close(pipes[0]);
-        close(pipes[1]);
-        return ("");
     } else if (pid == 0) {
-        if (dup2(pipes[1], 1) < 0) {
+        if (dup2(fd_file, 1) < 0) {
             std::cout << "Error: dup2";
         }
-        if (execve(cgi_file.c_str(), argv_c, env_c)) {
+        if (execve(cgi_exec.c_str(), argv_c, NULL)) {
             std::cout << "Error execve\n";
-            close(pipes[0]);
-            close(pipes[1]);
         }
     }
-    
     waitpid(pid, &status, 0);
-    result = File::read_file(pipes[0]);
-    close(pipes[0]);
-    close(pipes[1]);
+    close(fd_file);
     free_array_char(argv_c, argv.size());
     free_array_char(env_c, _env.size());
-    return (result);
+    fd_file = open("./other/tmp/tmp.txt", O_RDONLY);
+    return (File::read_file(fd_file));
 }
 
 char **CGI::convert_array_string_to_char(vector_string array_string) {

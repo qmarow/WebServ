@@ -93,7 +93,7 @@ void		Client::shape_the_response(void) {
 //	 }
 	
 	shredded_url = split_line(_url.get_path(), "/");
-	server = find_location(_server, shredded_url);
+	server = find_location(_server, shredded_url); // shredded_url обрезается
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
@@ -101,7 +101,7 @@ void		Client::shape_the_response(void) {
 	} else if (_request.get_method() == "DELETE") {
 		method_delete_run(server, shredded_url);
 	} else if (server.is_cgi_pass()) {
-		cgi_run(server);
+		cgi_run(server, shredded_url);
 	} else if (server.is_redirect()) {
 		redirect_run(server);
 	} else if (server.is_autoindex()) {
@@ -139,19 +139,28 @@ bool    Client::check_data_user(string str_in, string str_find) {
     }
 }
 
-void	Client::cgi_run(Server &server) {
+void	Client::cgi_run(Server &server, vector_string shredded_path) {
 	CGI cgi;
+	vector_string	shredded_root_path;
+	string			path_cgi_script;
 
-	std::cout << "cgi_run start\n";
+	if (shredded_path.size() == 0) {
+		error_run(server, 404);
+		return ;
+	}
+	if (server.is_root()) {
+		shredded_root_path.push_back(server.get_root());
+	}
+	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	path_cgi_script = glue_link(shredded_root_path);
 	cgi.set_url(_url);
 	cgi.set_server(server);
 	cgi.set_request(_request);
 	cgi.set_expansion("plain");
-	cgi.set_filename_script("./other/php/homepage.php");
+	cgi.set_filename_script(path_cgi_script);
 	cgi.set_data_socket_client(_data_socket);
-	std::cout << "cgi result: " << cgi.start() << "\n";
 	_response.set_code_status(200);
-	_response.set_body_message("cgi");
+	_response.set_body_message(cgi.start());
 }
 
 void     Client::authorization_run() {
@@ -259,8 +268,12 @@ void		Client::redirect_run(Server &server) {
 void	Client::error_run(Server &server, int code_error) {
 	ErrorPage error_page;
 
-	error_page.set_error_pages(server.get_error_pages());
-	error_page.set_root_error_page(server.get_root());
+	// if (server.is_error_page()) {;
+	// 	error_page.set_error_pages(server.get_error_pages());
+	// }
+	if (server.is_root()) {
+		error_page.set_root_error_page(server.get_root());
+	}
 	error_page.set_code_error(code_error);
 
 	_response.set_error_page(error_page);
