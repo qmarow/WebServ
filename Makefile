@@ -7,7 +7,7 @@ NAME = webserv
 SRCS =	./CGI/CGI.cpp \
 		./create_response/Response.cpp \
 		./create_response/ErrorPage.cpp \
-		./create_response/Content_type.cpp \
+		./create_response/ContentType.cpp \
 		./create_response/Autoindex.cpp \
 		./handler_connects/Client.cpp \
 		./handler_connects/HandlerConnects.cpp \

@@ -79,8 +79,8 @@ string      Response::header_content_lenght() {
     return ("Content-Lenght: " + std::to_string(_body_message.size()) + "\n");
 }
 
-string      Response::header_content_type() {
-    Content_type    type;
+string      Response::header_ContentType() {
+    ContentType    type;
     string          result = "Content-Type: ";
     std::vector<string> methodes_requeste = _request.get_values_header("Accept-Charset");
 
@@ -212,9 +212,7 @@ string Response::create_headers() {
     // response += header_server();
     // response += header_last_modified("название файла");
     // response += header_content_lenght();
-    std::cout << "flag5\n";
-    response += header_content_type();
-    std::cout << "flag6\n";
+    response += header_ContentType();
     // response += header_content_language();
     // response += header_allow();
     // response += header_content_location();

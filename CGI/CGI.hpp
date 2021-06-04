@@ -1,6 +1,8 @@
 #ifndef CGI_HPP
 #define CGI_HPP
 
+class CGI;
+
 #include <vector>
 #include <string>
 #include <unistd.h>
@@ -15,51 +17,56 @@ class CGI
 public:
     typedef std::string string;
     typedef std::vector<string> vector_string;
+    typedef struct sockaddr_in  sockaddr_t;
 
-    CGI();
-    ~CGI();
-    CGI(CGI const &x);
-    CGI     &operator=(CGI const &x);
 private:
-    char           **_env;
-    char           **_argv;
+    vector_string   _env;
+    vector_string   _argv;
     string          _filename_script;
     string          _expansion;
     string          _url_cgi_file;
     URL             _url;
     Server          _server;
     Request         _request;
-    Client          _client;
+    sockaddr_t      _data_socket_client;
+
 public:
+    CGI();
+    CGI(CGI const &x);
+    CGI &operator=(CGI const &x);
+    ~CGI();
+
     void    set_url(URL url);
     void    set_server(Server const &x);
     void    set_request(Request const &x);
     void    set_expansion(string expansion);
     void    set_url_cgi_file(string cgi_file);
-    void    set_filename_script(char *filename_script);
-    char    *start_cgi();
+    void    set_filename_script(string filename_script);
+    void    set_data_socket_client(sockaddr_t data_socket_client);
+    string  start();
+
 private:
     void    set_env();
-    char    *copy_string_to_char(string s1, char *s2);
-    char    **add_and_relocation(char **base, char *s_add);
+    char    **convert_array_string_to_char(vector_string array);
+    void    free_array_char(char **array, int size);
 
-    char    *definition_auth_type();
-    char    *definition_content_length();
-    char    *definition_content_type();
-    char    *definition_gateway_interface();
-    char    *definition_path_info();
-    char    *definition_path_translated();
-    char    *definition_query_string();
-    char    *definition_remote_addr();
-    char    *definition_remote_ident();
-    char    *definition_remote_user();
-    char    *definition_request_method();
-    char    *definition_request_uri();
-    char    *definition_script_name();
-    char    *definition_server_name();
-    char    *definition_server_port();
-    char    *definition_server_protocol();
-    char    *definition_server_software();
+    string  definition_auth_type(void);
+    string  definition_content_length(void);
+    string  definition_content_type(void);
+    string  definition_gateway_interface(void);
+    string  definition_path_info(void);
+    string  definition_path_translated(void);
+    string  definition_query_string(void);
+    string  definition_remote_addr(void);
+    string  definition_remote_ident(void);
+    string  definition_remote_user(void);
+    string  definition_request_method(void);
+    string  definition_request_uri(void);
+    string  definition_script_name(void);
+    string  definition_server_name(void);
+    string  definition_server_port(void);
+    string  definition_server_protocol(void);
+    string  definition_server_software(void);
 };
 
 #endif

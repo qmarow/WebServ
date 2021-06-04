@@ -91,6 +91,7 @@ void		Client::shape_the_response(void) {
 //	 if (_url.get_path() == "favicon.ico") {
 //	 	return ;
 //	 }
+	
 	shredded_url = split_line(_url.get_path(), "/");
 	server = find_location(_server, shredded_url);
 	if (check_error_max_body(server)) {
@@ -99,11 +100,13 @@ void		Client::shape_the_response(void) {
 		error_run(server, 405);
 	} else if (_request.get_method() == "DELETE") {
 		method_delete_run(server, shredded_url);
+	} else if (server.is_cgi_pass()) {
+		cgi_run(server);
 	} else if (server.is_redirect()) {
 		redirect_run(server);
 	} else if (server.is_autoindex()) {
         autoindex_run(server, shredded_url);
-    }else if (server.is_authorization(_request)){
+    } else if (server.is_authorization(_request)){
         authorization_run(_request.get_values_header("Authorization"));
 	} else if (server.is_registration(_request.get_body())){
 	    registration_run(_request.get_body());
@@ -112,28 +115,15 @@ void		Client::shape_the_response(void) {
     } else if (server.is_index()) {
 		index_run(server);
 	} else {
-		std::cout << "flag1\n";
 		error_run(server, 404);
 	}
 }
 
-void		cgi_run() {
-
-}
-
-void     Client::authorization_run() {
-    _response.set_authorization(true);
-    _response.set_code_status(401);
-    _response.set_body_message("");
- }
-
-void    Client::authorization_run(std::vector<string> value_header) {
-
-}
 
 bool    Client::check_data_user(string str_in, string str_find) {
     int i = 0;
     int a;
+
     while (1) {
        a = 0;
         if (str_in[i] == 'L') {
@@ -149,23 +139,29 @@ bool    Client::check_data_user(string str_in, string str_find) {
     }
 }
 
-void			Client::method_delete_run(Server &server, vector_string shredded_path) {
-	File			file;
-	vector_string	shredded_root_path;
+void	Client::cgi_run(Server &server) {
+	CGI cgi;
 
-	if (server.is_root()) {
-		shredded_root_path.push_back(server.get_root());
-	}
-	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
-	if (file.open_file(shredded_root_path) != 0) {
-		error_run(server, 404);
-		return ;
-	}
-	if (file.delete_file() != 0) {
-		error_run(server, 500);
-		return ;
-	}
+	std::cout << "cgi_run start\n";
+	cgi.set_url(_url);
+	cgi.set_server(server);
+	cgi.set_request(_request);
+	cgi.set_expansion("plain");
+	cgi.set_filename_script("./other/php/homepage.php");
+	cgi.set_data_socket_client(_data_socket);
+	std::cout << "cgi result: " << cgi.start() << "\n";
 	_response.set_code_status(200);
+	_response.set_body_message("cgi");
+}
+
+void     Client::authorization_run() {
+	_response.set_authorization(true);
+	_response.set_code_status(401);
+	_response.set_body_message("");
+}
+
+void    Client::authorization_run(std::vector<string> value_header) {
+
 }
 
 void     Client::registration_run(string body)  {
@@ -189,55 +185,23 @@ void     Client::registration_run(string body)  {
     _response.set_code_status(200);
 }
 
-Server& Client::find_location(Server &server, vector_string &shredded_url) {
-	vector_string keys_locations;
-	int index = 0;
-	int count_coincidence = 0;
-	int tmp;
-	vector_string shredded_url_location;
+void			Client::method_delete_run(Server &server, vector_string shredded_path) {
+	File			file;
+	vector_string	shredded_root_path;
 
-	keys_locations = server.get_keys_locations();
-	for (int i = 0; i < keys_locations.size(); i++) {
-		shredded_url_location = split_line(keys_locations[i], "/");
-		tmp = find_count_coincidence(shredded_url_location, shredded_url);
-		if (tmp > count_coincidence) {
-			count_coincidence = tmp;
-			index = i;
-		} else if (tmp != 0 && tmp == count_coincidence) {
-			vector_string one = vector_string(shredded_url.begin() + 
-			count_coincidence, shredded_url.end());
-			vector_string two = one;
-			Server server_one = server.get_location(index);
-			Server server_two = server.get_location(i);
-			find_location(server_one, one);
-			find_location(server_two, two);
-			if (one.size() > two.size()) {
-				index = i;
-			}
-		}
+	if (server.is_root()) {
+		shredded_root_path.push_back(server.get_root());
 	}
-	if (count_coincidence != 0) {
-		Server &location = server.get_location(index);
-		shredded_url = vector_string(shredded_url.begin() + 
-			count_coincidence, shredded_url.end());
-		return (find_location(location, shredded_url));
+	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	if (file.open_file(shredded_root_path) != 0) {
+		error_run(server, 404);
+		return ;
 	}
-	return (server);
-}
-
-int		Client::find_count_coincidence(vector_string shredded_url_location, vector_string shredded_url) {
-	int i;
-
-	for (i = 0; i < shredded_url_location.size()
-				&& i < shredded_url.size(); i++) {
-		if (shredded_url_location[i] != shredded_url[i]) {
-			break ;
-		}
+	if (file.delete_file() != 0) {
+		error_run(server, 500);
+		return ;
 	}
-	if (i < shredded_url_location.size()) {
-		return (0);
-	}
-	return (i);
+	_response.set_code_status(200);
 }
 
 void		Client::index_run(Server &server) {
@@ -292,8 +256,65 @@ void		Client::redirect_run(Server &server) {
 	_response.set_url_redirect(server.get_url_redirect());
 }
 
-void		default_method_body_run() {
+void	Client::error_run(Server &server, int code_error) {
+	ErrorPage error_page;
 
+	error_page.set_error_pages(server.get_error_pages());
+	error_page.set_root_error_page(server.get_root());
+	error_page.set_code_error(code_error);
+
+	_response.set_error_page(error_page);
+}
+
+Server& Client::find_location(Server &server, vector_string &shredded_url) {
+	vector_string keys_locations;
+	int index = 0;
+	int count_coincidence = 0;
+	int tmp;
+	vector_string shredded_url_location;
+
+	keys_locations = server.get_keys_locations();
+	for (int i = 0; i < keys_locations.size(); i++) {
+		shredded_url_location = split_line(keys_locations[i], "/");
+		tmp = find_count_coincidence(shredded_url_location, shredded_url);
+		if (tmp > count_coincidence) {
+			count_coincidence = tmp;
+			index = i;
+		} else if (tmp != 0 && tmp == count_coincidence) {
+			vector_string one = vector_string(shredded_url.begin() + 
+			count_coincidence, shredded_url.end());
+			vector_string two = one;
+			Server server_one = server.get_location(index);
+			Server server_two = server.get_location(i);
+			find_location(server_one, one);
+			find_location(server_two, two);
+			if (one.size() > two.size()) {
+				index = i;
+			}
+		}
+	}
+	if (count_coincidence != 0) {
+		Server &location = server.get_location(index);
+		shredded_url = vector_string(shredded_url.begin() + 
+			count_coincidence, shredded_url.end());
+		return (find_location(location, shredded_url));
+	}
+	return (server);
+}
+
+int		Client::find_count_coincidence(vector_string shredded_url_location, vector_string shredded_url) {
+	int i;
+
+	for (i = 0; i < shredded_url_location.size()
+				&& i < shredded_url.size(); i++) {
+		if (shredded_url_location[i] != shredded_url[i]) {
+			break ;
+		}
+	}
+	if (i < shredded_url_location.size()) {
+		return (0);
+	}
+	return (i);
 }
 
 bool	Client::check_error_max_body(Server &server) {
@@ -308,16 +329,6 @@ bool	Client::check_error_allow_methods(vector_string allow_methods) {
 		return (true);
 	}
 	return (false);
-}
-
-void	Client::error_run(Server &server, int code_error) {
-	ErrorPage error_page;
-
-	error_page.set_error_pages(server.get_error_pages());
-	error_page.set_root_error_page(server.get_root());
-	error_page.set_code_error(code_error);
-
-	_response.set_error_page(error_page);
 }
 
 string	Client::glue_link(vector_string &shredded_url) {
