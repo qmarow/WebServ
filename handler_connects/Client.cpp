@@ -88,9 +88,9 @@ void		Client::shape_the_response(void) {
 	vector_string	shredded_url;
 	Server	server;
 
-	// if (_url.get_path() == "favicon.ico") {
-	// 	return ;
-	// }
+//	 if (_url.get_path() == "favicon.ico") {
+//	 	return ;
+//	 }
 	shredded_url = split_line(_url.get_path(), "/");
 	server = find_location(_server, shredded_url);
 	if (check_error_max_body(server)) {
@@ -102,13 +102,15 @@ void		Client::shape_the_response(void) {
 	} else if (server.is_redirect()) {
 		redirect_run(server);
 	} else if (server.is_autoindex()) {
-		autoindex_run(server, shredded_url);
-	} else if (server.is_registration(_request.get_body())) {
+        autoindex_run(server, shredded_url);
+    }else if (server.is_authorization(_request)){
+        authorization_run(_request.get_values_header("Authorization"));
+	} else if (server.is_registration(_request.get_body())){
 	    registration_run(_request.get_body());
-	} else if (server.is_index()) {
+    } else if (server.is_authorization(_request.get_body())) {
+	    authorization_run();
+    } else if (server.is_index()) {
 		index_run(server);
-	} else if (server.is_authorization() && false) {
-
 	} else {
 		std::cout << "flag1\n";
 		error_run(server, 404);
@@ -119,9 +121,33 @@ void		cgi_run() {
 
 }
 
-// std::string     Client::authorization_run() {
+void     Client::authorization_run() {
+    _response.set_authorization(true);
+    _response.set_code_status(401);
+    _response.set_body_message("");
+ }
 
-// }
+void    Client::authorization_run(std::vector<string> value_header) {
+
+}
+
+bool    Client::check_data_user(string str_in, string str_find) {
+    int i = 0;
+    int a;
+    while (1) {
+       a = 0;
+        if (str_in[i] == 'L') {
+            while (str_in[i + a] != 0 && str_find[a] != 0 && str_in[i + a] == str_find[a]) {
+                ++a;
+            }
+            if (str_find[a] == 0)
+                return (true);
+        }
+        if (str_in[i + a] == 0)
+            return (false);
+        ++i;
+    }
+}
 
 void			Client::method_delete_run(Server &server, vector_string shredded_path) {
 	File			file;
@@ -142,19 +168,25 @@ void			Client::method_delete_run(Server &server, vector_string shredded_path) {
 	_response.set_code_status(200);
 }
 
-std::string     Client::registration_run(string body)  {
+void     Client::registration_run(string body)  {
     string data;
-    int i = 14;
+    int i = 18;
     for (; body[i] != 0; i++){
         data += body[i];
     }
-
-    int fd = open("./../other/user_data.txt", O_RDONLY);
+    int fd = open("other/user_data.txt", O_RDONLY);
+    if (fd < 0) {
+        std::cout << "Error: open fd client.cpp\n";
+        exit(1);
+    }
     string tmp = File::read_file(fd);
-    tmp = tmp + "\n\n" + data;
-    fd = open("./../other/user_data.txt", O_WRONLY);
-    write(fd, tmp.c_str(), tmp.size());
-	return ("");
+    bool res = check_data_user(tmp, data);
+    if (!res) {
+        tmp = tmp + "\n\n" + data;
+        fd = open("other/user_data.txt", O_WRONLY);
+        write(fd, tmp.c_str(), tmp.size());
+    }
+    _response.set_code_status(200);
 }
 
 Server& Client::find_location(Server &server, vector_string &shredded_url) {

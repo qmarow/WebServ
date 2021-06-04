@@ -57,11 +57,13 @@ public:
 	void				close_fd(void);
 
 private:
+    bool        check_data_user(string str_in, string str_find);
 	void		shape_the_response(void);
 	void		method_delete_run(Server &server, vector_string shredded_url);
-	string      registration_run(string body);
-	string      authorization_run();
 	void		index_run(Server &server);
+	void        registration_run(string body);
+	void        authorization_run();
+    void        authorization_run(std::vector<string>);
 	void		autoindex_run(Server &server, vector_string shredded_url);
 	void		redirect_run(Server &server);
 	bool		check_error_max_body(Server &server);
