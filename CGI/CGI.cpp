@@ -2,24 +2,16 @@
 #include "CGI.hpp"
 
 CGI::CGI() {
-    _env = NULL;
-    _argv = NULL;
+    _env = vector_string();
+    _argv = vector_string();
     _url = URL();
     _server = Server();
     _request = Request();
     _expansion = string();
     _url_cgi_file = string();
-    _client = Client();
 }
 
-CGI::~CGI() {
-    int i = 0;
-    for (; *(_env + i) != 0; i++) {
-        free(*(_env + i));
-    }
-    free(*(_env + i));
-    free(_env);
-}
+CGI::~CGI() {}
 
 CGI::CGI(CGI const &x) {
     *this = x;
@@ -33,7 +25,6 @@ CGI     &CGI::operator=(const CGI &x) {
     _request = x._request;
     _expansion = x._expansion;
     _url_cgi_file = x._url_cgi_file;
-    _client = x._client;
     return (*this);
 }
 
@@ -53,306 +44,303 @@ void    CGI::set_expansion(string expansion) {
     _expansion = expansion;
 }
 
-char    **CGI::add_and_relocation(char **base, char *s_add) {
-    int     size = 1;
-    for (int i = 0; base + i != 0; i++) {
-        size++;
-    }
-    char **result = (char**)malloc(sizeof(char*) * (size + 1));
-    result[size] = 0;
-    int i = 0;
-    for (; *(base + i) != 0; i++) {
-        result[i] = (char*)malloc(sizeof(char) * (ft_strlen(base[i]) + 1));
-        int a = 0;
-        for (; base[i][a] != 0; a++) {
-            result[i][a] = base[i][a];
-        }
-        result[i][a] = 0;
-    }
-    int a = 0;
-    for (; s_add[a] != 0; a++) {
-        result[i][a] = s_add[a];
-    }
-    result[i][a] = 0;
-    for (i = 0; *(base + i) != 0; i++) {
-        free(*(base + i));
-    }
-    free(*(base + i));
-    free(s_add);
-    return (result);
-}
-
-char    *CGI::start_cgi() {
-    int pipes[2];
-    char *argv[2] = {const_cast<char*>(_filename_script.c_str()), 0};
-    char *cgi_file =  const_cast<char*>(_server.get_cgi_pass().c_str());
-    set_env();
-    pid_t pid;
-//    File    buf_file;
-
-//    buf_file.openFile("./CGI", "BUFFER.txt");
-
-    if ((pipe(pipes)) <= 0)
-        std::cout << "Error: pipe\n";
-    if ((dup2(pipes[0], 0) < 0) || (dup2(pipes[1], 1) < 0)) {
-        std::cout << "Error: dup2";
-    }
-    if (_request.get_method() == "POST") {
-        std::cout << _request.get_body();
-    }
-    _env = add_and_relocation(_env, const_cast<char*>(("SCRIPT_FILENAME=" + _filename_script).c_str()));
-    if ((pid = fork()) < 0) {
-        std::cout << "Error: fork\n";
-        close(pipes[0]);
-        close(pipes[1]);
-        return NULL;
-    } else if (pid == 0) {
-        if (execve(cgi_file, argv, _env) < 0) {
-            close(pipes[0]);
-            close(pipes[1]);
-            return NULL;
-        }
-    }
-    int status;
-    waitpid(pid, &status, 0);
-
-    string  res = File::readFile(pipes[0]);
-    close(pipes[0]);
-    close(pipes[1]);
-    return (const_cast<char*>(res.c_str()));
-}
-
-void    CGI::set_filename_script(char *filename_script) {
+void    CGI::set_filename_script(string filename_script) {
     _filename_script = filename_script;
-}
-
-void    CGI::set_env() {
-    int     size = 1;
-    char    *tmp;
-    if ((tmp = definition_auth_type()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_content_length()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_content_type()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_gateway_interface()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_path_info()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_path_translated()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_query_string()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_remote_addr()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_remote_ident()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_remote_user()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_request_method()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_request_uri()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_script_name()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_server_name()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_server_port()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_server_protocol()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
-    if ((tmp = definition_server_software()) != NULL) {
-        _env = add_and_relocation(_env, tmp);
-    }
 }
 
 void    CGI::set_url_cgi_file(string cgi_file) {
     _url_cgi_file = cgi_file;
 }
 
-char    *CGI::copy_string_to_char(string s1, char *s2) {
-    int i = 0;
-    for (; i < s1.size(); i++) {
-        s2[i] = s1[i];
-    }
-    s2[i] = 0;
-    return (s2);
+void    CGI::set_data_socket_client(sockaddr_t data_socket_client) {
+    _data_socket_client = data_socket_client;
 }
 
-char    *CGI::definition_auth_type() {
-    vector_string auth_basic = _server.get_auth_basic();
+// string  CGI::start() {
+//     int             pipes[2];
+//     int             status;
+//     pid_t           pid;
+//     string          result;
+//     string          cgi_file;
+//     vector_string   argv;
+
+    
+// //    File    buf_file;
+// //    buf_file.open("./CGI", "BUFFER.txt");
+//     set_env();
+//     cgi_file =  _server.get_cgi_pass();
+//     argv.push_back(cgi_file);
+//     argv.push_back(_filename_script);
+//     if ((pipe(pipes)) <= 0)
+//         std::cout << "Error: pipe\n";
+//     // if ((dup2(pipes[0], 0) < 0) || (dup2(pipes[1], 1) < 0)) {
+//     //     std::cout << "Error: dup2";
+//     // }
+//     // if (_request.get_method() == "POST") {
+//     //     std::cout << _request.get_body();
+//     // }
+//     std::cout << "flag2\n";
+//     _env.push_back("SCRIPT_FILENAME=" + _filename_script);
+//     std::cout << "flag3\n";
+//     if ((pid = fork()) < 0) {
+//         std::cout << "Error: fork\n";
+//         close(pipes[0]);
+//         close(pipes[1]);
+//         return ("");
+//     } else if (pid == 0) {
+//         if (dup2(pipes[1], 1) < 0) {
+//             std::cout << "Error: dup2";
+//         }
+//         if (execve(cgi_file.c_str(), argv, _env)) {
+//             std::cout << "Error execve\n";
+//             close(pipes[0]);
+//             close(pipes[1]);
+//             return ("");
+//         }
+//     }
+//     std::cout << "flag4\n";
+//     waitpid(pid, &status, 0);
+//     result = File::read_file(pipes[0]);
+//     close(pipes[0]);
+//     close(pipes[1]);
+//     return (result);
+// }
+
+string  CGI::start() {
+    // int             pipes[2];
+    int             status;
+    pid_t           pid;
+    // string          result;
+    string          cgi_exec;
+    string          cgi_script;
+    vector_string   argv;
+    char            **argv_c;
+    char            **env_c;
+    int             fd_write;
+    int             fd_file;
+
+    set_env();
+    cgi_exec = "/Users/utoomey/Desktop/WebServ/" + trim_line(_server.get_cgi_pass(), "./");
+    cgi_script = "/Users/utoomey/Desktop/WebServ/" + trim_line(_filename_script, "./");
+    argv.push_back(cgi_exec);
+    argv.push_back(cgi_script);
+    // if ((pipe(pipes)) <= 0) {
+    //     std::cout << "Error: pipe\n";
+    // }
+    _env.push_back("SCRIPT_FILENAME=" + cgi_script);
+    argv_c = convert_array_string_to_char(argv);
+    env_c = convert_array_string_to_char(_env);
+    fd_write = dup(1);
+    fd_file = open("./other/tmp/tmp.txt", O_CREAT | O_WRONLY | O_TRUNC, ~0);
+    if ((pid = fork()) < 0) {
+        std::cout << "Error: fork\n";
+    } else if (pid == 0) {
+        if (dup2(fd_file, 1) < 0) {
+            std::cout << "Error: dup2";
+        }
+        if (execve(cgi_exec.c_str(), argv_c, NULL)) {
+            std::cout << "Error execve\n";
+        }
+    }
+    waitpid(pid, &status, 0);
+    close(fd_file);
+    free_array_char(argv_c, argv.size());
+    free_array_char(env_c, _env.size());
+    fd_file = open("./other/tmp/tmp.txt", O_RDONLY);
+    return (File::read_file(fd_file));
+}
+
+char **CGI::convert_array_string_to_char(vector_string array_string) {
+    char **array_char;
+
+    array_char = (char**)malloc(sizeof(char*) * (array_string.size() + 1));
+    for (int i = 0; i < array_string.size(); i++) {
+        array_char[i] = strdup(array_string[i].c_str());
+    }
+    array_char[array_string.size()] = NULL;
+    return (array_char);
+}
+
+void    CGI::free_array_char(char **array, int size) {
+    for (int i = 0; i < size; i++) {
+        free(array[i]);
+    }
+    free(array);
+}
+
+void    CGI::set_env() {
+    string  value;
+
+    if ((value = definition_auth_type()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_content_length()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_content_type()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_gateway_interface()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_path_info()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_path_translated()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_query_string()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_remote_addr()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_remote_ident()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_remote_user()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_request_method()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_request_uri()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_script_name()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_server_name()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_server_port()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_server_protocol()) != "") {
+        _env.push_back(value);
+    }
+    if ((value = definition_server_software()) != "") {
+        _env.push_back(value);
+    }
+}
+
+string  CGI::definition_auth_type() {
+    vector_string auth_basic;
+    
+    auth_basic = _server.get_auth_basic();
     if (auth_basic.empty()) {
-        return (NULL);
+        return ("");
     } // если есть auth_basic тогда определяем
-    string  tmp = auth_basic[0];
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    result = copy_string_to_char(tmp, result);
-    return (result);
+    return (auth_basic[0]);
 }
 
-char    *CGI::definition_content_length() {
+string  CGI::definition_content_length() {
+    string body;
+    string content_length;
+ 
     if (_request.get_method() != "POST") {
-        return (NULL);
+        return ("");
     }
-    string body = _request.get_body();
-    string tmp = "CONTENT_LENGHT=" + std::to_string(body.size());
-    char *result = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    result = copy_string_to_char(tmp, result);
-    return (result);
+    body = _request.get_body();
+    content_length = "CONTENT_LENGHT=" + std::to_string(body.size());
+    return (content_length);
 
 }
 
-char    *CGI::definition_content_type() {
+string  CGI::definition_content_type() {
+    string content_type;
+
     // тип содержимого посланного серверу клиентом
     if (_expansion.empty())
-        return NULL;
-    Content_type a;
-    string  tmp = "CONTENT_TYPE=" + a.get_type(_expansion);
-    char    *content_type = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    content_type = copy_string_to_char(tmp, content_type);
-
+        return ("");
+    content_type = "ContentType=" + ContentType().get_type(_expansion);
     return (content_type);
 }
 
-char    *CGI::definition_gateway_interface() {
-//Указывает версию интерфейса CGI, который поддерживает сервер.
-    char    *version_CGI;
-
-    version_CGI = (char*)malloc(sizeof(char) * (7 + 1)); //CGI/1.1
-    version_CGI = copy_string_to_char("GATEWAY_INTERFACE=CGI/1.1", version_CGI);
-    return (version_CGI);
+string  CGI::definition_gateway_interface() {
+    //Указывает версию интерфейса CGI, который поддерживает сервер.
+    return (string("GATEWAY_INTERFACE=CGI/1.1"));
 }
 
-char    *CGI::definition_path_info() {
+string CGI::definition_path_info() {
 // относильный путь к исполняемому cgi ресурсу? пока точно не знаю
+    return ("");
 }
 
-char    *CGI::definition_path_translated() {
+string CGI::definition_path_translated() {
     // абсолютный путь к исполняемомоу cgi ресурсу или скрипту? пока точно не знаю
+    return ("");
 }
 
-char    *CGI::definition_query_string() {
+string CGI::definition_query_string() {
+    vector_string   keys;
+    vector_string   value;
+    string          result;
+
     // переменные URL
-    if (_url.get_values_argv().empty() || _request.get_method() != "GET")
-        return (NULL);
-    vector_string   keys = _url.get_keys_argv();
-    vector_string   value = _url.get_values_argv();
-    string          tmp = "QUERY_STRING=" + keys[0] + "=" + value[0];;
-    char            *result = NULL;
-
-    int i = 1;
-    for (; i < keys.size(); i++) {
-        tmp = tmp + "&" + keys[i] + "=" + value[i];
+    if (_url.get_values_argv().empty() || _request.get_method() != "GET") {
+        return ("");
     }
-
-    result = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    result = copy_string_to_char(tmp, result);
+    keys = _url.get_keys_argv();
+    value = _url.get_values_argv();
+    result = "QUERY_STRING=" + keys[0] + "=" + value[0];;
+    for (int i = 1; i < keys.size(); i++) {
+        result = result + "&" + keys[i] + "=" + value[i];
+    }
     return (result);
 }
 
-char    *CGI::definition_remote_addr() {
+string CGI::definition_remote_addr() {
     // IP клиета
-    struct sockaddr_in data_socket = _client.get_data_socket();
-    string tmp  = "REMOTE_ADDR=" + string(inet_ntoa(data_socket.sin_addr));
-    char    *result;
-
-    result = (char*)(malloc(sizeof(char) * (tmp.size() + 1)));
-    result = copy_string_to_char(tmp, result);
-    return (result);
+    return ("REMOTE_ADDR=" + string(inet_ntoa(_data_socket_client.sin_addr)));
 }
 
-char    *CGI::definition_remote_ident() {
+string CGI::definition_remote_ident() {
 //    Напрмер, если имя удаленного пользователя pschmauder и
 //    он назодится на удаленном узле jamsa.com ,
 //    то переменная примет следующее значение:
 //    REMOTE_IDENT = pschmauder.www.jamsa.com
+    return ("");
 }
 
-char    *CGI::definition_remote_user() {
+string CGI::definition_remote_user() {
 //    Используется для того, чтобы получить имя удаленного пользователя без имени узла
+    return ("");
 }
 
-char    *CGI::definition_request_method() {
+string CGI::definition_request_method() {
     // определяет тип запроса GET, HEAD POST и т.д.
-    string  tmp = "REQUEST_METHOD=" + _request.get_method();
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    result = copy_string_to_char(tmp, result);
-    return (result);
+    return ("REQUEST_METHOD=" + _request.get_method());
 }
 
-char    *CGI::definition_request_uri() {
-    vector_string request_uri = _request.get_values_header("Content-Location");
-    if (request_uri.empty())
-        return (NULL);
-    string  tmp = "REQUEST_URI=" + request_uri[0];
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    result = copy_string_to_char(tmp, result);
-    return (result);
+string CGI::definition_request_uri() {
+    vector_string   request_uri;
+    
+    if (request_uri.empty()) {
+        return ("");
+    }
+    request_uri = _request.get_values_header("Content-Location");
+    return ("REQUEST_URI=" + request_uri[0]);
 }
 
-char    *CGI::definition_script_name() {
+string CGI::definition_script_name() {
     if (_url_cgi_file.empty())
-        return (NULL);
-
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (_url_cgi_file.size() + 1));
-    result = copy_string_to_char("SCRIPT_NAME=" + _url_cgi_file, result);
-    return (result);
+        return ("");
+    return ("SCRIPT_NAME=" + _url_cgi_file);
 }
 
-char    *CGI::definition_server_name() {
-    string  tmp = _server.get_server_name();
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    result = copy_string_to_char("SERVER_NAME=" + tmp, result);
-    return (result);
+string CGI::definition_server_name() {
+    return (_server.get_server_name());
 }
 
-char    *CGI::definition_server_port() {
-    string  tmp = std::to_string(_server.get_port());
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (tmp.size() + 1));
-    result = copy_string_to_char("SERVER_PORT=" + tmp, result);
-    return (result);
+string CGI::definition_server_port() {
+    return ("SERVER_PORT=" + std::to_string(_server.get_port()));
 }
 
-char    *CGI::definition_server_protocol() {
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (8 + 1));
-    result = copy_string_to_char("SERVER_PROTOCOL=HTTP/1.1", result);
-    return (result);
+string CGI::definition_server_protocol() {
+    return ("SERVER_PROTOCOL=HTTP/1.1");
 }
 
-char    *CGI::definition_server_software() {
-    char    *result;
-
-    result = (char*)malloc(sizeof(char) * (11 + 1));
-    result = copy_string_to_char("SERVER_SOFTWARE=WebServ/1.1", result);
-    return (result);
+string CGI::definition_server_software() {
+    return ("SERVER_SOFTWARE=WebServ/1.1");
 }

@@ -91,12 +91,17 @@ void		Client::shape_the_response(void) {
 //	 if (_url.get_path() == "favicon.ico") {
 //	 	return ;
 //	 }
+	
 	shredded_url = split_line(_url.get_path(), "/");
-	server = find_location(_server, shredded_url);
+	server = find_location(_server, shredded_url); // shredded_url обрезается
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
 		error_run(server, 405);
+	} else if (_request.get_method() == "DELETE") {
+		method_delete_run(server, shredded_url);
+	} else if (server.is_cgi_pass()) {
+		cgi_run(server, shredded_url);
 	} else if (server.is_redirect()) {
 		redirect_run(server);
 	} else if (server.is_autoindex()) {
@@ -153,11 +158,6 @@ void		Client::shape_the_response_for_logged_user(vector_string shredded_url, Ser
     }
 }
 
-
-void		cgi_run() {
-
-}
-
 void     Client::authorization_run() {
     _response.set_authorization(true);
     _response.set_code_status(401);
@@ -188,7 +188,7 @@ bool    Client::authorization_run(std::vector<string> value_header, Server serve
         std::cout << "Error: open fd client.cpp\n";
         exit(1);
     }
-    string tmp = File::readFile(fd);
+    string tmp = File::read_file(fd);
     bool res = check_data_user(tmp,user_data);
     if (!res) {
         return (false);
@@ -199,6 +199,7 @@ bool    Client::authorization_run(std::vector<string> value_header, Server serve
 bool    Client::check_data_user(string str_in, string str_find) {
     int i = 0;
     int a;
+
     while (1) {
        a = 0;
         if (str_in[i] == 'L') {
@@ -214,6 +215,30 @@ bool    Client::check_data_user(string str_in, string str_find) {
     }
 }
 
+void	Client::cgi_run(Server &server, vector_string shredded_path) {
+	CGI cgi;
+	vector_string	shredded_root_path;
+	string			path_cgi_script;
+
+	if (shredded_path.size() == 0) {
+		error_run(server, 404);
+		return ;
+	}
+	if (server.is_root()) {
+		shredded_root_path.push_back(server.get_root());
+	}
+	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	path_cgi_script = glue_link(shredded_root_path);
+	cgi.set_url(_url);
+	cgi.set_server(server);
+	cgi.set_request(_request);
+	cgi.set_expansion("plain");
+	cgi.set_filename_script(path_cgi_script);
+	cgi.set_data_socket_client(_data_socket);
+	_response.set_code_status(200);
+	_response.set_body_message(cgi.start());
+}
+
 void     Client::registration_run(string body)  {
     string data;
     int i = 18;
@@ -225,14 +250,116 @@ void     Client::registration_run(string body)  {
         std::cout << "Error: open fd client.cpp\n";
         exit(1);
     }
-    string tmp = File::readFile(fd);
+    string tmp = File::read_file(fd);
     bool res = check_data_user(tmp, data);
     if (!res) {
-        tmp = tmp + "\n\n" + data;
+        tmp = tmp + "\n\n" + data + " ";
         fd = open("other/user_data.txt", O_WRONLY);
         write(fd, tmp.c_str(), tmp.size());
     }
     _response.set_code_status(200);
+}
+
+void			Client::method_delete_run(Server &server, vector_string shredded_path) {
+	File			file;
+	vector_string	shredded_root_path;
+
+	if (server.is_root()) {
+		shredded_root_path.push_back(server.get_root());
+	}
+	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	if (file.open_file(shredded_root_path) != 0) {
+		error_run(server, 404);
+		return ;
+	}
+	if (file.delete_file() != 0) {
+		error_run(server, 500);
+		return ;
+	}
+	_response.set_code_status(200);
+}
+
+void		Client::index_run(Server &server) {
+	File		file;
+	string		text;
+	int			code_error;
+	
+	code_error = file.open_file(server.get_root(), server.get_index()[0]);
+	if (code_error > 0) {
+		error_run(server, 404);
+		return ;
+	}
+	text = file.read_file();
+	file.close_file();
+	_response.set_code_status(200);
+	_response.set_body_message(text);
+}
+
+void		Client::index_run(Server &server, string root, string name_file) {
+    File		file;
+    string		text;
+    int			code_error;
+
+    std::cout << "Puth" << root + name_file  << "\n";
+    code_error = file.open_file(root, name_file);
+    if (code_error > 0) {
+        error_run(server, 404);
+        return ;
+    }
+    text = file.read_file();
+    file.close_file();
+    _response.set_code_status(200);
+    _response.set_body_message(text);
+}
+
+void		Client::autoindex_run(Server &server, vector_string shredded_url) {
+	vector_string	shredded_url_location;
+	string			directory;
+	string			url_location;
+	Autoindex		autoindex;
+	Response		response;
+	File			file;
+	string			text;
+
+	shredded_url_location = split_line(_url.get_path(), "/");
+	shredded_url_location = vector_string(shredded_url_location.begin(),
+							shredded_url_location.end() - shredded_url.size());
+	directory = glue_link(shredded_url);
+	url_location = glue_link(shredded_url_location);
+
+	if (is_directory("./" + directory) == false) {
+		file.open_file(server.get_root(), directory);
+		text = file.read_file();
+		file.close_file();
+		_response.set_expansion("plain");
+	} else {
+		autoindex.set_url_location(url_location);
+		autoindex.set_root(server.get_root());
+		autoindex.set_directory(directory);
+		text = autoindex.get_html();
+		_response.set_expansion("html");
+	}
+	_response.set_code_status(200);
+	_response.set_body_message(text);
+}
+
+void		Client::redirect_run(Server &server) {
+	_response.set_code_status(server.get_code_redirect());
+	_response.set_url_redirect(server.get_url_redirect());
+}
+
+void	Client::error_run(Server &server, int code_error) {
+	ErrorPage error_page;
+
+	// if (server.is_error_page()) {;
+	// 	error_page.set_error_pages(server.get_error_pages());
+	// }
+	if (server.is_root()) {
+		error_page.set_root_error_page(server.get_root());
+	}
+	error_page.set_code_error(code_error);
+
+	_response.set_error_page(error_page);
 }
 
 Server& Client::find_location(Server &server, vector_string &shredded_url) {
@@ -286,77 +413,6 @@ int		Client::find_count_coincidence(vector_string shredded_url_location, vector_
 	return (i);
 }
 
-void		Client::index_run(Server &server) {
-	File		file;
-	string		text;
-	int			code_error;
-
-	code_error = file.openFile(server.get_root(), server.get_index()[0]);
-	if (code_error > 0) {
-		error_run(server, 404);
-		return ;
-	}
-	text = file.readFile();
-	file.closeFile();
-	_response.set_code_status(200);
-	_response.set_body_message(text);
-}
-
-void		Client::index_run(Server &server, string root, string name_file) {
-    File		file;
-    string		text;
-    int			code_error;
-
-    std::cout << "Puth" << root + name_file  << "\n";
-    code_error = file.openFile(root, name_file);
-    if (code_error > 0) {
-        error_run(server, 404);
-        return ;
-    }
-    text = file.readFile();
-    file.closeFile();
-    _response.set_code_status(200);
-    _response.set_body_message(text);
-}
-
-void		Client::autoindex_run(Server &server, vector_string shredded_url) {
-	vector_string	shredded_url_location;
-	string			directory;
-	string			url_location;
-	Autoindex		autoindex;
-	Response		response;
-	File			file;
-	string			text;
-	
-	shredded_url_location = split_line(_url.get_path(), "/");
-	shredded_url_location = vector_string(shredded_url_location.begin(),
-							shredded_url_location.end() - shredded_url.size());
-	directory = glue_link(shredded_url);
-	url_location = glue_link(shredded_url_location);
-
-	if (is_directory("./" + directory) == false) {
-		file.openFile(server.get_root(), directory);
-		text = file.readFile();
-		file.closeFile();
-	} else {
-		autoindex.set_url_location(url_location);
-		autoindex.set_root(server.get_root());
-		autoindex.set_directory(directory);
-		text = autoindex.get_html();
-	}
-	_response.set_code_status(200);
-	_response.set_body_message(text);
-}
-
-void		Client::redirect_run(Server &server) {
-	_response.set_code_status(server.get_code_redirect());
-	_response.set_url_redirect(server.get_url_redirect());
-}
-
-void		default_method_body_run() {
-
-}
-
 bool	Client::check_error_max_body(Server &server) {
 	if (_request.get_body().size() > server.get_max_body_size()) {
 		return (true);
@@ -369,16 +425,6 @@ bool	Client::check_error_allow_methods(vector_string allow_methods) {
 		return (true);
 	}
 	return (false);
-}
-
-void	Client::error_run(Server &server, int code_error) {
-	ErrorPage error_page;
-
-	error_page.set_error_pages(server.get_error_pages());
-	error_page.set_root_error_page(server.get_root());
-	error_page.set_code_error(code_error);
-
-	_response.set_error_page(error_page);
 }
 
 string	Client::glue_link(vector_string &shredded_url) {

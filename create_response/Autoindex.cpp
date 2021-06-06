@@ -35,20 +35,20 @@ string Autoindex::get_html() {
     vector_pair directories;
 
     directories = get_directories();
-    html += "<!DOCTYPE html>";
-    html += "<html>";
-    html +=     "<head>";
-    html +=         "<title>";
-    html +=             get_html_title();
-    html +=         "</title>";
-    html +=     "</head>";
-    html +=     "<body>";
-    html +=         "<h1>Index: </h1>";
-    html +=         "<ul>";
-    html +=             get_html_directories(directories);
-    html +=         "</ul>";
-    html +=     "</body>";
-    html += "</html>";
+    html += "<!DOCTYPE html>\n";
+    html += "<html>\n";
+    html +=     "\t<head>\n";
+    html +=         "\t\t<title>\n";
+    html +=             "\t\t\t" + get_html_title() + "\n";
+    html +=         "\t\t</title>\n";
+    html +=     "\t</head>\n";
+    html +=     "\t<body>\n";
+    html +=         "\t\t<h1>Index: </h1>\n";
+    html +=         "\t\t<ul>\n";
+    html +=             "\t\t\t" + get_html_directories(directories) + "\n";
+    html +=         "\t\t</ul>\n";
+    html +=     "\t</body>\n";
+    html += "</html>\n";
     return (html);
 }
 
@@ -151,10 +151,10 @@ Autoindex::string  Autoindex::get_html_title(void) {
 Autoindex::string  Autoindex::get_html_directory(pair directory) {
     string html;
 
-    html = "<li>";
-    html +=     "<a href=\"" + directory.second + "\">";
-    html +=         directory.first;
-    html +=     "</a>";
-    html += "</li>";
+    html = "<li>\n";
+    html +=     "\t<a href=\"" + directory.second + "\">\n";
+    html +=         "\t\t" + directory.first + "\n";
+    html +=     "\t</a>\n";
+    html += "</li>\n";
     return (html);
 }

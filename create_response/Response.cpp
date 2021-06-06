@@ -79,19 +79,19 @@ string      Response::header_content_lenght() {
     return ("Content-Lenght: " + std::to_string(_body_message.size()) + "\n");
 }
 
-string      Response::header_content_type() {
-    Content_type    type;
+string      Response::header_ContentType() {
+    ContentType    type;
     string          result = "Content-Type: ";
     std::vector<string> methodes_requeste = _request.get_values_header("Accept-Charset");
 
     if (_expansion != string()) {
-        result = result + type.get_type(_expansion);
+        result += type.get_type(_expansion);
     }
-    if (methodes_requeste.empty()) {
+    if (methodes_requeste.empty() == false) {
         result += "; charset=";
         result += methodes_requeste[0];
     }
-    return (string("Content-Type: ") + "\n");
+    return (result + "\n");
 }
 
 string      Response::header_content_language() {
@@ -189,6 +189,11 @@ string Response::shape_the_response() {
     } else if (_request.get_method() == "PUT") {
         
     }
+    // else if (_request.get_method() == "POST") {
+
+    // } else if (_request.get_method() == "DELETE") {
+
+    // }
     return (response);
 }
 
@@ -207,7 +212,7 @@ string Response::create_headers() {
     // response += header_server();
     // response += header_last_modified("название файла");
     // response += header_content_lenght();
-    // response += header_content_type();
+    response += header_ContentType();
     // response += header_content_language();
     // response += header_allow();
     // response += header_content_location();

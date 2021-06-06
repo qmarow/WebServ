@@ -4,7 +4,7 @@
 #include "./../parse_request/Request.hpp"
 #include "./../parse_confige/Server.hpp"
 #include "./../utils/UtilsTime.hpp"
-#include "./Content_type.hpp"
+#include "./ContentType.hpp"
 #include "./ErrorPage.hpp"
 
 class ErrorPage;
@@ -48,7 +48,7 @@ private:
     string header_server(void);
     string header_last_modified(string name_file);
     string header_content_lenght(void);
-    string header_content_type(void);
+    string header_ContentType(void);
     string header_content_language(void);
     string header_allow(void);
     string header_content_location(void);

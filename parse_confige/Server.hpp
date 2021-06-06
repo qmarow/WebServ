@@ -88,6 +88,7 @@ public:
     bool            is_index(void);
     bool            is_autoindex(void);
     bool            is_error_page(int code_error);
+    bool            is_error_page(void);
     bool            is_location(string key_location);
     bool            is_method(string method);
     bool            is_allow_methods(void);

@@ -17,6 +17,7 @@ class Client;
 #include "./../parse_request/ParseRequest.hpp"
 #include "./../create_response/Response.hpp"
 #include "./../create_response/ErrorPage.hpp"
+#include "./../CGI/CGI.hpp"
 
 enum	Status {
 	READ,
@@ -66,6 +67,8 @@ private:
     bool        authorization_run(std::vector<string>, Server);
     void		index_run(Server &server);
     void		index_run(Server &server, string root, string name_file);
+	void		cgi_run(Server &server, vector_string shredded_url);
+	void		method_delete_run(Server &server, vector_string shredded_url);
 	void		autoindex_run(Server &server, vector_string shredded_url);
 	void		redirect_run(Server &server);
 	bool		check_error_max_body(Server &server);

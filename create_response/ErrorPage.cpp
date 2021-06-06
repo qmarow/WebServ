@@ -60,9 +60,9 @@ std::string     ErrorPage::get_error_page(void) {
                 break ;
             }
         }
-        tool_for_file.openFile(_root_error_page, _errors_page_config[i].file);
-        result = tool_for_file.readFile();
-        tool_for_file.closeFile();
+        tool_for_file.open_file(_root_error_page, _errors_page_config[i].file);
+        result = tool_for_file.read_file();
+        tool_for_file.close_file();
         return (result);
     }
     for (int i = 0; i < COUNT_ERROR_PAGE; i++){
@@ -88,13 +88,15 @@ int             ErrorPage::get_code_error(void) {
 }
 
 std::string     ErrorPage::create_error_page(int code_error, std::string name_error) {
-    std::string html = "<html>";
-    html +=     "<head>";
-    html +=     "</head>";
-    html +=     "<body>";
-    html +=         "<h1>Error: " + std::to_string(code_error) + "</h1>";
-    html +=             "<h2>" + name_error + "</h2>";
-    html +=     "</body>";
-    html += "</html>";
+    std::string html;
+
+    html += "<html>\n";
+    html +=     "\t<head>\n";
+    html +=     "\t</head>\n";
+    html +=     "\t<body>\n";
+    html +=         "\t\t<h1>Error: " + std::to_string(code_error) + "</h1>\n";
+    html +=             "\t\t<h2>" + name_error + "</h2>\n";
+    html +=     "\t</body>\n";
+    html += "</html>\n";
     return (html);
 }

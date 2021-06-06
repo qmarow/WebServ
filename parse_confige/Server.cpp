@@ -275,6 +275,10 @@ bool Server::is_error_page(int code_error) {
     return (get_file_error_page(code_error) != "");
 }
 
+bool Server::is_error_page(void) {
+    return (_error_pages.size() != 0);
+}
+
 bool Server::is_location(string key_location) {
     return (find_word(_keys_locations, key_location) != -1);
 }
