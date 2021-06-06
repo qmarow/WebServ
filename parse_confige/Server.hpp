@@ -96,7 +96,7 @@ public:
     bool            is_cgi_pass(void);
     bool            is_cgi_param(void);
     bool            is_redirect(void);
-    bool            is_authorization(string body);
+    bool            is_authorization(string body, string tmp);
     bool            is_registration(string body);
     bool            is_authorization(Request request);
 };

@@ -307,9 +307,8 @@ bool Server::is_cgi_param(void) {
     return (_cgi_param.size() != 0);
 }
 
-bool Server::is_authorization(string body){
-    string tmp = "Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation";
-    int a = body.find("Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation");
+bool Server::is_authorization(string body, string tmp){
+    int a = body.find(tmp);
 
     if (a != 4) {
         return (false);

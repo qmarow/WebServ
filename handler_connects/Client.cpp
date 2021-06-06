@@ -102,10 +102,17 @@ void		Client::shape_the_response(void) {
 	} else if (server.is_autoindex()) {
         autoindex_run(server, shredded_url);
     }else if (server.is_authorization(_request)){
-        authorization_run(_request.get_values_header("Authorization"));
+        if (authorization_run(_request.get_values_header("Authorization"), server)) {
+            std::cout << "Rir: " << server.is_index() << "\n";
+            shape_the_response_for_logged_user(shredded_url, server);
+        } else {
+//            _response.set_code_status(403);
+            _response.set_code_status(401);
+//            index_run(server);
+        }
 	} else if (server.is_registration(_request.get_body())){
 	    registration_run(_request.get_body());
-    } else if (server.is_authorization(_request.get_body())) {
+    } else if (server.is_authorization(_request.get_body(), "Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation")) {
 	    authorization_run();
     } else if (server.is_index()) {
 		index_run(server);
@@ -113,6 +120,39 @@ void		Client::shape_the_response(void) {
 		error_run(server, 404);
 	}
 }
+
+void		Client::shape_the_response_for_logged_user(vector_string shredded_url, Server &server) {
+    vector_string tmp = server.get_index();
+    std::cout << "*(*(\n";
+    if (tmp.size()) {
+        tmp[0] = "logged_" + tmp[0];
+        server.set_index(tmp);
+    }
+    else {
+        std::cout << "!!!!!!!!\n";
+        server.set_index(vector_string(1, "/logged_registration.html"));
+        server.set_root("./other");
+        std::cout << server.get_index().size() << "\n";
+        std::cout << server.is_index() << "\n";
+    }
+    if (check_error_max_body(server)) {
+        error_run(server, 413);
+    } else if (check_error_allow_methods(server.get_allow_methods())) {
+        error_run(server, 405);
+    } else if (server.is_redirect()) {
+        redirect_run(server);
+    } else if (server.is_autoindex()) {
+        autoindex_run(server, shredded_url);
+    } else if (server.is_authorization(_request.get_body(), "log23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation")) {
+        _response.set_code_status(401);
+        index_run(server, server.get_root(), "/" + server.get_index()[0].erase(0, 8));
+    } else if (server.is_index()) {
+        index_run(server);
+    } else {
+        error_run(server, 404);
+    }
+}
+
 
 void		cgi_run() {
 
@@ -122,10 +162,38 @@ void     Client::authorization_run() {
     _response.set_authorization(true);
     _response.set_code_status(401);
     _response.set_body_message("");
+
  }
 
-void    Client::authorization_run(std::vector<string> value_header) {
-    string user_data = atob(value_header[1]);
+bool    Client::authorization_run(std::vector<string> value_header, Server server) {
+    unsigned char *decbuf =(unsigned char *)malloc(sizeof(unsigned char) * value_header[1].size());
+    decode_b64((unsigned char*)value_header[1].c_str(), value_header[1].size(), decbuf);
+    string user_data = "Login: ";
+    int i = 0;
+
+    for (; decbuf[i] != ':'; i++) {
+        user_data += decbuf[i];
+    }
+    user_data += "\n";
+    user_data += "Password: ";
+    ++i;
+    for (; decbuf[i] != 0; i++) {
+        user_data += decbuf[i];
+    }
+    free(decbuf);
+    std::cout << user_data << "\n";
+
+    int fd = open("other/user_data.txt", O_RDONLY);
+    if (fd < 0) {
+        std::cout << "Error: open fd client.cpp\n";
+        exit(1);
+    }
+    string tmp = File::readFile(fd);
+    bool res = check_data_user(tmp,user_data);
+    if (!res) {
+        return (false);
+    }
+    return (true);
 }
 
 bool    Client::check_data_user(string str_in, string str_find) {
@@ -232,6 +300,23 @@ void		Client::index_run(Server &server) {
 	file.closeFile();
 	_response.set_code_status(200);
 	_response.set_body_message(text);
+}
+
+void		Client::index_run(Server &server, string root, string name_file) {
+    File		file;
+    string		text;
+    int			code_error;
+
+    std::cout << "Puth" << root + name_file  << "\n";
+    code_error = file.openFile(root, name_file);
+    if (code_error > 0) {
+        error_run(server, 404);
+        return ;
+    }
+    text = file.readFile();
+    file.closeFile();
+    _response.set_code_status(200);
+    _response.set_body_message(text);
 }
 
 void		Client::autoindex_run(Server &server, vector_string shredded_url) {

@@ -8,6 +8,7 @@ class Client;
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "./../parse_confige/Server.hpp"
+#include "./../utils/decode_base64.hpp"
 #include "./../utils/File.hpp"
 #include "./../create_response/Autoindex.hpp"
 #include "./../parse_url/URL.hpp"
@@ -59,10 +60,12 @@ public:
 private:
     bool        check_data_user(string str_in, string str_find);
 	void		shape_the_response(void);
-	void        registration_run(string body);
+    void		shape_the_response_for_logged_user(vector_string shredded_url, Server &server);
+    void        registration_run(string body);
 	void        authorization_run();
-    void        authorization_run(std::vector<string>);
+    bool        authorization_run(std::vector<string>, Server);
     void		index_run(Server &server);
+    void		index_run(Server &server, string root, string name_file);
 	void		autoindex_run(Server &server, vector_string shredded_url);
 	void		redirect_run(Server &server);
 	bool		check_error_max_body(Server &server);
