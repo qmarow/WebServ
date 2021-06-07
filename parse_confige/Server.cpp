@@ -201,6 +201,7 @@ void Server::set_auth_basic(vector_string auth_basic) {
 
 
 void  Server::set_allow_methods(vector_string methods) {
+    print_vector("!!! ", methods);
     for (int i = 0; i < methods.size(); i++) {
         if (find_word(_allow_methods, methods[i]) == -1) {
             _allow_methods.push_back(methods[i]);

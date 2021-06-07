@@ -97,6 +97,7 @@ void		Client::shape_the_response(void) {
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
+		std::cout << "ERROR\n";
 		error_run(server, 405);
 	} else if (_request.get_method() == "DELETE") {
 		method_delete_run(server, shredded_url);
@@ -338,6 +339,7 @@ bool	Client::check_error_max_body(Server &server) {
 }
 
 bool	Client::check_error_allow_methods(vector_string allow_methods) {
+	print_vector("allow_methods:", allow_methods);
 	if (find_word(allow_methods, _request.get_method()) == -1) {
 		return (true);
 	}
