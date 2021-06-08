@@ -8,7 +8,7 @@ const char *ParseRequest::_headers[COUNT_KEY_HEADERS] = {"Accept-Charsets", "Acc
                                                     "Location", "Referer", "Retry-After", "Server",
                                                     "Transfer-Encoding", "User-Agent", "WWW-Authenticate"};
 
-const char *ParseRequest::_type_requests[COUNT_TYPE_REQUESTS] = {"GET", "HEAD", "POST", "PUT", "DELETE"};
+const char *ParseRequest::_type_requests[COUNT_TYPE_REQUESTS] = {"GET", "HEAD", "POST", "DELETE"};
 
 // PUBLIC
 

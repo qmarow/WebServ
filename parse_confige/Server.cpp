@@ -201,7 +201,7 @@ void Server::set_auth_basic(vector_string auth_basic) {
 
 
 void  Server::set_allow_methods(vector_string methods) {
-    print_vector("!!! ", methods);
+    // print_vector("!!! ", methods);
     for (int i = 0; i < methods.size(); i++) {
         if (find_word(_allow_methods, methods[i]) == -1) {
             _allow_methods.push_back(methods[i]);
@@ -312,9 +312,8 @@ bool Server::is_cgi_param(void) {
     return (_cgi_param.size() != 0);
 }
 
-bool Server::is_authorization(string body){
-    string tmp = "Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation";
-    int a = body.find("Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation");
+bool Server::is_authorization(string body, string tmp){
+    int a = body.find(tmp);
 
     if (a != 4) {
         return (false);

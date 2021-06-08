@@ -18,6 +18,7 @@ SRCS =	./CGI/CGI.cpp \
 		./parse_url/URL.cpp \
 		./utils/UtilsString.cpp \
 		./utils/UtilsTime.cpp \
+		./utils/decode_base64.cpp \
 		./utils/File.cpp \
 		./main.cpp
 
