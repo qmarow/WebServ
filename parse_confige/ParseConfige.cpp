@@ -9,7 +9,7 @@ const char *ParseConfige::_key_words[COUNT_KEY_WORDS] = {"client_max_body_size",
                                             "cgi_allow_methods", "cgi_deny_methods", "default_method_body",
                                             "unknown", "server", "listen", "}", "{"};
 
-const char *ParseConfige::_type_requests[COUNT_TYPE_REQUESTS] = {"GET", "HEAD", "POST", "DELETE"};
+const char *ParseConfige::_type_requests[COUNT_TYPE_REQUESTS] = {"GET", "HEAD", "POST", "PUT", "DELETE"};
 
 // PUBLIC
 ParseConfige::ParseConfige() {

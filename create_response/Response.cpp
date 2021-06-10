@@ -176,18 +176,10 @@ string      Response::get_body_message(void) {
 string Response::shape_the_response() {
     string response;
 
-    if (_request.get_method() == "GET") {
-        response += create_headers();
-        response += "\n\n";
+    response += create_headers();
+    response += "\n\n";
+    if (_request.get_method() != "HEAD") {
         response += get_body_message();
-    } else if (_request.get_method() == "HEAD") {
-        response += create_headers();
-    } else if (_request.get_method() == "POST") {
-        response += create_headers();
-        response += "\n\n";
-        response += get_body_message();
-    } else if (_request.get_method() == "PUT") {
-        
     }
     // else if (_request.get_method() == "POST") {
 
@@ -202,7 +194,8 @@ string Response::create_headers() {
 
     response = "HTTP/1.1 ";
     if (_error_page.get_name_error() == "") {
-        response += std::to_string(_code_status) + " OK\n";
+        // response += std::to_string(_code_status) + " OK\n";
+        response += "200 OK\n";
     } else {
         response += std::to_string(_error_page.get_code_error());
         response += " " + _error_page.get_name_error() + "\n";

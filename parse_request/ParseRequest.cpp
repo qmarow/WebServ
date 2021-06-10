@@ -8,7 +8,7 @@ const char *ParseRequest::_headers[COUNT_KEY_HEADERS] = {"Accept-Charsets", "Acc
                                                     "Location", "Referer", "Retry-After", "Server",
                                                     "Transfer-Encoding", "User-Agent", "WWW-Authenticate"};
 
-const char *ParseRequest::_type_requests[COUNT_TYPE_REQUESTS] = {"GET", "HEAD", "POST", "DELETE"};
+const char *ParseRequest::_type_requests[COUNT_TYPE_REQUESTS] = {"GET", "HEAD", "POST", "PUT", "DELETE"};
 
 // PUBLIC
 
@@ -41,11 +41,18 @@ void ParseRequest::open(string request) {
     vector_string   data = split_line(request_without_body, "\r\n");
     string          starting_line = data[0];
     vector_string   headers(data.begin() + 1, data.end());
-    string          body = request.substr(position_body, request.size());
+    std::cout << ">>>> " << position_body << " " << request.size() << "\n";
+    string          body;
 
+    if(position_body == request.size()) {
+        body = "";
+    } else {
+        body = request.substr(position_body + 4, request.size());
+    }
+    std::cout << "FLAG\n";
     parse_starting_line(starting_line);
     parse_headers(headers);
-    parse_body(body);
+    // parse_body(body);
 }
 
 const char *ParseRequest::MissingStartLineException::what() const throw() {

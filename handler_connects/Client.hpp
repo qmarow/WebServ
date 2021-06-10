@@ -49,10 +49,12 @@ private:
 public:
 	enum Status			get_status();
 	string				get_response();
+	Request     		&get_request();
 	int					get_fd();
 	struct sockaddr_in	get_data_socket();
+	string				get_buffer_request();
 	void				set_status(enum Status x);
-	void				set_request(char *s);
+	void				set_request(string headlers, string body_message);
 	void				set_fd(int const &x);
 	void				set_server(Server server);
 	void				set_data_socket(struct sockaddr_in data_socket);
@@ -69,6 +71,8 @@ private:
     void		index_run(Server &server, string root, string name_file);
 	void		cgi_run(Server &server, vector_string shredded_url);
 	void		method_delete_run(Server &server, vector_string shredded_url);
+	void		method_put_run(Server &server, vector_string shredded_url);
+	void		method_post_run(Server &server, vector_string shredded_url);
 	void		autoindex_run(Server &server, vector_string shredded_url);
 	void		redirect_run(Server &server);
 	bool		check_error_max_body(Server &server);

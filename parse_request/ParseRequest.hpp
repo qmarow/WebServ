@@ -2,7 +2,7 @@
 #define PARSEREQUEST_HPP
 
 #define COUNT_KEY_HEADERS 18
-#define COUNT_TYPE_REQUESTS 4
+#define COUNT_TYPE_REQUESTS 5
 
 #include <vector>
 #include <string>

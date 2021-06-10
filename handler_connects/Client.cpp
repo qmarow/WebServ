@@ -50,12 +50,20 @@ std::string	Client::get_response() {
 	return (_response.get_response());
 }
 
+Request  &Client::get_request() {
+	return (_request);
+}
+
 int			Client::get_fd() {
 	return (_fd);
 }
 
 struct sockaddr_in	Client::get_data_socket() {
 	return (_data_socket);
+}
+
+std::string			Client::get_buffer_request() {
+	return (_buffer_request);
 }
 
 void		Client::set_data_socket(struct sockaddr_in data_socket) {
@@ -66,8 +74,14 @@ void		Client::set_status(enum Status x) {
 	this->_status = x;
 }
 
-void		Client::set_request(char *s) {
-	this->_buffer_request += std::string(s);
+void		Client::set_request(string headlers, string body_message) {
+	if (headlers != "") {
+		this->_buffer_request = headlers;
+	}
+	if (body_message != ""){
+		this->_buffer_request += body_message;
+	}
+	// this->_request.set_body
 }
 
 void		Client::set_fd(int const &x) {
@@ -101,6 +115,10 @@ void		Client::shape_the_response(void) {
 		error_run(server, 405);
 	} else if (_request.get_method() == "DELETE") {
 		method_delete_run(server, shredded_url);
+	} else if (_request.get_method() == "PUT") {
+		method_put_run(server, shredded_url);
+	} else if (_request.get_method() == "POST") {
+		method_post_run(server, shredded_url);
 	} else if (server.is_cgi_pass()) {
 		cgi_run(server, shredded_url);
 	} else if (server.is_redirect()) {
@@ -109,7 +127,6 @@ void		Client::shape_the_response(void) {
         autoindex_run(server, shredded_url);
     }else if (server.is_authorization(_request)){
         if (authorization_run(_request.get_values_header("Authorization"), server)) {
-            std::cout << "Rir: " << server.is_index() << "\n";
             shape_the_response_for_logged_user(shredded_url, server);
         } else {
 //            _response.set_code_status(403);
@@ -123,23 +140,20 @@ void		Client::shape_the_response(void) {
     } else if (server.is_index()) {
 		index_run(server);
 	} else {
+		std::cout << "!!!!!!!!!!!!!!!\n";
 		error_run(server, 404);
 	}
 }
 
 void		Client::shape_the_response_for_logged_user(vector_string shredded_url, Server &server) {
     vector_string tmp = server.get_index();
-    std::cout << "*(*(\n";
     if (tmp.size()) {
         tmp[0] = "logged_" + tmp[0];
         server.set_index(tmp);
     }
     else {
-        std::cout << "!!!!!!!!\n";
         server.set_index(vector_string(1, "/logged_registration.html"));
         server.set_root("./other");
-        std::cout << server.get_index().size() << "\n";
-        std::cout << server.is_index() << "\n";
     }
     if (check_error_max_body(server)) {
         error_run(server, 413);
@@ -182,7 +196,6 @@ bool    Client::authorization_run(std::vector<string> value_header, Server serve
         user_data += decbuf[i];
     }
     free(decbuf);
-    std::cout << user_data << "\n";
 
     int fd = open("other/user_data.txt", O_RDONLY);
     if (fd < 0) {
@@ -261,6 +274,44 @@ void     Client::registration_run(string body)  {
     _response.set_code_status(200);
 }
 
+void			Client::method_post_run(Server &server, vector_string shredded_path) {
+	File			file;
+	vector_string	shredded_root_path;
+
+	if (server.is_root()) {
+		shredded_root_path.push_back(server.get_root());
+	}
+	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	if (file.open_file(shredded_root_path) != 0) {
+		error_run(server, 500);
+		return ;
+	}
+	if (file.append_file(_request.get_body()) != 0) {
+		error_run(server, 500);
+		return ;
+	}
+	_response.set_code_status(200);
+}
+
+void			Client::method_put_run(Server &server, vector_string shredded_path) {
+	File			file;
+	vector_string	shredded_root_path;
+
+	if (server.is_root()) {
+		shredded_root_path.push_back(server.get_root());
+	}
+	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	if (file.open_file(shredded_root_path) != 0) {
+		error_run(server, 500);
+		return ;
+	}
+	if (file.write_file(_request.get_body()) != 0) {
+		error_run(server, 500);
+		return ;
+	}
+	_response.set_code_status(200);
+}
+
 void			Client::method_delete_run(Server &server, vector_string shredded_path) {
 	File			file;
 	vector_string	shredded_root_path;
@@ -291,7 +342,6 @@ void		Client::index_run(Server &server) {
 		return ;
 	}
 	text = file.read_file();
-	file.close_file();
 	_response.set_code_status(200);
 	_response.set_body_message(text);
 }
@@ -301,14 +351,12 @@ void		Client::index_run(Server &server, string root, string name_file) {
     string		text;
     int			code_error;
 
-    std::cout << "Puth" << root + name_file  << "\n";
     code_error = file.open_file(root, name_file);
     if (code_error > 0) {
         error_run(server, 404);
         return ;
     }
     text = file.read_file();
-    file.close_file();
     _response.set_code_status(200);
     _response.set_body_message(text);
 }
@@ -331,7 +379,6 @@ void		Client::autoindex_run(Server &server, vector_string shredded_url) {
 	if (is_directory("./" + directory) == false) {
 		file.open_file(server.get_root(), directory);
 		text = file.read_file();
-		file.close_file();
 		_response.set_expansion("plain");
 	} else {
 		autoindex.set_url_location(url_location);
@@ -366,18 +413,20 @@ void	Client::error_run(Server &server, int code_error) {
 Server& Client::find_location(Server &server, vector_string &shredded_url) {
 	vector_string keys_locations;
 	int index = 0;
-	int count_coincidence = 0;
+	int count_coincidence = -1;
 	int tmp;
 	vector_string shredded_url_location;
 
 	keys_locations = server.get_keys_locations();
 	for (int i = 0; i < keys_locations.size(); i++) {
 		shredded_url_location = split_line(keys_locations[i], "/");
+		print_vector("shredded_url_location:", shredded_url_location);
+		print_vector("shredded_url:", shredded_url);
 		tmp = find_count_coincidence(shredded_url_location, shredded_url);
 		if (tmp > count_coincidence) {
 			count_coincidence = tmp;
 			index = i;
-		} else if (tmp != 0 && tmp == count_coincidence) {
+		} else if (tmp != -1 && tmp == count_coincidence) {
 			vector_string one = vector_string(shredded_url.begin() + 
 			count_coincidence, shredded_url.end());
 			vector_string two = one;
@@ -390,12 +439,14 @@ Server& Client::find_location(Server &server, vector_string &shredded_url) {
 			}
 		}
 	}
-	if (count_coincidence != 0) {
+	
+	if (count_coincidence != -1) {
 		Server &location = server.get_location(index);
 		shredded_url = vector_string(shredded_url.begin() + 
 			count_coincidence, shredded_url.end());
 		return (find_location(location, shredded_url));
 	}
+
 	return (server);
 }
 
@@ -409,7 +460,7 @@ int		Client::find_count_coincidence(vector_string shredded_url_location, vector_
 		}
 	}
 	if (i < shredded_url_location.size()) {
-		return (0);
+		return (-1);
 	}
 	return (i);
 }

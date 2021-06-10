@@ -1,14 +1,12 @@
 #include "HandlerConnects.hpp"
 
-HandlerConnects::HandlerConnects()
-{
+HandlerConnects::HandlerConnects() {
 	_fds_master = vector_fd();
 	_clients = vector_client();
 	_max_fd = 0;
 };
 
-HandlerConnects::~HandlerConnects()
-{};
+HandlerConnects::~HandlerConnects() {};
 
 int                 HandlerConnects::get_max_fd(vector_fd fds) {
 	int max = 0;
@@ -21,8 +19,8 @@ int                 HandlerConnects::get_max_fd(vector_fd fds) {
 	return (max);
 }
 
-int		HandlerConnects::get_socket(string host, int port)
-{
+int		HandlerConnects::get_socket(string host, int port) {
+	std::cout << "___get_socket()___\n";
 	struct sockaddr_in	addr;
 	int 				optval = 1;
 	int					master_sock;
@@ -58,8 +56,7 @@ int		HandlerConnects::get_socket(string host, int port)
 	return (master_sock);
 }
 
-void	HandlerConnects::data_preparation(vector_server &servers)
-{
+void	HandlerConnects::data_preparation(vector_server &servers) {
 	std::string	ip;
 	int			port;
 	int			socket_master;
@@ -102,27 +99,116 @@ void	HandlerConnects::update_clients() {
 	}
 }
 
-void	HandlerConnects::parse_client(Client &client) {
-	char buff[100];
+// bool	check_request(Client &Client){
+
+// }
+
+string	read_up_to_string(int fd, string s){
+	string tmp;
+	char buff[1];
 	int count_read;
 
-	bzero(&buff, 100);
-
-	std::cout << "RESUEST:\n[\033[32;4;24m";
-	while ((count_read = recv(client.get_fd(), buff, sizeof(buff), 0)) > 0) {
-		buff[count_read] = '\0';
-		client.set_request(buff);
-		std::cout << buff << "\n";
+	bzero(&buff, 1);
+	while (1) {
+		count_read = recv(fd, buff, 1, 0);
+		tmp += string(buff);
+		if (tmp.find(s) == -1) {
+			break ;
+		}
 	}
-	std::cout << "\033[0m]\n";
-	client.set_status(WRITE);
+	return (tmp);
+}
+
+int 	read_heandler(Client &client){
+	string tmp;
+	char buff[2];
+	int count_read;
+
+	bzero(&buff, 2);
+	while (1) {
+		count_read = recv(client.get_fd(), buff, 1, 0);
+		if (count_read == 0) {
+		    return (0);
+		}
+		tmp += string(buff);
+		if (tmp.find("\n\n") != -1) {
+			break ;
+		}
+		std::cout << tmp;
+	}
+	std::cout << tmp;
+	client.set_request(tmp, "");
+	return (count_read);
+}
+
+int		get_number(string buff, int i) {
+	int res = 0;
+	while (buff[i] != 0 && !isdigit(buff[i])) {
+		++i;
+	}
+	res = buff[i] - '0';
+	while (isdigit(buff[i])){
+		res *= 10;
+		res += buff[i] - '0';
+		++i;
+	}
+	return (res);
+}
+
+int	read_body_message(Client &client) {
+	string	buffer_request = client.get_buffer_request();
+	int i = find_in_headers(buffer_request, "Content-Length");
+    int count_read;
+
+
+    if (i != -1) {
+		char buff[i];
+		i = get_number(buffer_request, i);
+		bzero(&buff, i);
+		count_read = recv(client.get_fd(), buff, i, 0);
+		client.get_request().set_body(string(buff));
+		std::cout << "CONTENT_Leght\n";
+		client.set_status(WRITE);
+	} else if ((i = find_in_headers(buffer_request, "Transfer-Encoding: chunked")) != -1){
+		std::cout << "i - " << i << "\n";
+		std::cout << "Transfer-not-write\n";
+        i = std::stoi(read_up_to_string(client.get_fd(), "\n"));
+        if (i != 0) {
+            char buff[i];
+            bzero(&buff, i);
+            count_read = recv(client.get_fd(), buff, i, 0);
+            client.get_request().set_body(string(buff));
+        } else {
+			std::cout << "Transfer-WRITE\n";
+            client.set_status(WRITE);
+        }
+	} else {
+			std::cout << "OTHER\n";
+		client.get_request().set_body("");
+		client.set_status(WRITE);
+	}
+    return (count_read);
+}
+
+void	HandlerConnects::parse_client(Client &client) {
+	std::cout << "parse_client\n";
+	if (read_heandler(client)) {
+		std::cout << "read_heandler\n";
+        read_body_message(client);
+    } else {
+		std::cout << "Close\n";
+        client.set_status(CLOSE);
+	}
 }
 
 void	HandlerConnects::response_for_client(Client &client) {
 	string	response;
 	
+	std::cout << client.get_buffer_request();
+	std::cout << client.get_request().get_body();
+
 	response = client.get_response();
-	std::cout << "RESPONSE:\n[\033[31;1;4m" << response << "\n\033[0m";
+	std::cout << "\n\n" << response << "\n";
 	int err = send(client.get_fd(), response.c_str(), response.size(), 0);
 }
 
@@ -139,9 +225,11 @@ void		HandlerConnects::handler_set_writes() {
 	while (it != _clients.end()) {
 		if (FD_ISSET(it->get_fd(), &_write_set)) {
 			response_for_client(*it);
-			it->close_fd();
-			it = _clients.erase(it);
-			continue;
+//			 if (it->get_status() == CLOSE) {
+				it->close_fd();
+				it = _clients.erase(it);
+				continue;
+//			 }
 		}
 		it++;
 	}
@@ -152,7 +240,9 @@ void	HandlerConnects::handler_connect_client() {
 		std::cout << "Error: select";
 		return ;
 	}
+	std::cout << "select\n";
 	update_clients();
+	std::cout << "updade_clients\n";
 	handler_set_reads();
 	handler_set_writes();
 }
@@ -160,7 +250,7 @@ void	HandlerConnects::handler_connect_client() {
 void	HandlerConnects::init_set_client(iter_client client) {
 	FD_SET(client->get_fd(), &_read_set);
 
-	if (client->get_status() == WRITE) {
+	if (client->get_status() == WRITE || client->get_status() == CLOSE) {
 		FD_SET(client->get_fd(), &_write_set);
 	}
 }

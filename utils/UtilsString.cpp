@@ -6,6 +6,24 @@ size_t  ft_strlen(char *s) {
     return (size);
 }
 
+int     find_in_headers(string str, string s) {
+    int i = 0;
+    int a = 0;
+
+    while (i < str.size() && !(str[i] == '\n' && str[i + 1] == '\n')) {
+        if (str[i + a] == s[a]) {
+            for (; str[i + a] == s[a]; ++a) {
+            }
+            if (a == s.size() - 1) {
+                return (i);
+            }
+            a = 0;
+        }
+        ++i;
+    }
+    return (-1);
+}
+
 string trim_line(string line, string set) {
     int count_left = 0;
     int count_right = 0;

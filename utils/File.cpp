@@ -3,7 +3,7 @@
 // PUBLIC
 
 File::File() {
-    _fd = -1;
+    _file = string();
 }
 
 File::File(const File &file) {
@@ -11,37 +11,16 @@ File::File(const File &file) {
 }
 
 File &File::operator=(const File &file) {
-    _fd = file._fd;
+    _file = file._file;
     return (*this);
 }
 
-File::~File() {
-    if (_fd != -1) {
-        close(_fd);
-    }
-}
-
-// int     File::create_file(string root, string name) {
-//     string file;
-
-//     file = get_file_with_path(root, name);
-//     _fd = open(file.c_str(), O_CREAT | O_RDWR, ~0);
-//     if (_fd == -1) {
-//         return (1);
-//     }
-//     return (0);
-// }
+File::~File() {}
 
 int		File::open_file(string root, string name) {
-    string file;
+    int     fd;
 
-    _root = root;
-    _name = name;
-    file = get_file_with_path(root, name);
-    _fd = open(file.c_str(), O_RDONLY);
-    if (_fd == -1) {
-        return (1);
-    }
+    _file = get_file_with_path(root, name);
     return (0);
 }
 
@@ -57,41 +36,42 @@ int     File::open_file(vector_string shredded_path) {
     return (open_file(root, name));
 }
 
-// int     File::append_file(string text) {
-//     string  old_text;
-//     int     code_error;
+int     File::append_file(string text) {
+    string  old_text;
+    int     code_error;
 
-//     old_text = read_file(_fd);
-//     std::cout << "old: " << old_text << "\n";
-//     // old_text += text;
-//     code_error = write(_fd, old_text.c_str(), old_text.size());
-//     if (code_error == -1) {
-//         return (1);
-//     }
-//     return (0);
-// }
+    old_text = read_file();
+    old_text += text;
+    code_error = write_file(old_text);
+    if (code_error == -1) {
+        return (1);
+    }
+    return (0);
+}
 
-// int     File::write_file(string text) {
-//     int code_error;
+int     File::write_file(string text) {
+    int code_error;
+    int fd;
 
-//     code_error = write(_fd, text.c_str(), text.size());
-//     if (code_error == -1) {
-//         return (1);
-//     }
-//     return (0);
-// }
+    fd = open(_file.c_str(), O_CREAT | O_TRUNC | O_WRONLY, ~0);
+    if (fd == -1) {
+        return (1);
+    }
+    code_error = write(fd, text.c_str(), text.size());
+    if (code_error == -1) {
+        return (2);
+    }
+    close(fd);
+    return (0);
+}
 
 std::string	File::read_file(void) {
-    char	buffer[2];
     string	text;
+    int     fd;
 
-    if (_fd == -1) {
-        return ("");
-    }
-    while (read(_fd, buffer, 1) > 0) {
-        buffer[1] = '\0';
-        text += string(buffer);
-    }
+    fd = open(_file.c_str(), O_RDONLY);
+    text = read_file(fd);
+    close(fd);
     return (text);
 }
 
@@ -109,20 +89,14 @@ std::string	File::read_file(int fd) {
     return (text);
 }
 
-void	File::close_file(void) {
-    close(_fd);
-    _fd = -1;
-}
-
 int     File::delete_file(void) {
     int     pid;
     int     status;
 	string  path;
 	char	*buf[3];
 
-	path = get_file_with_path(_root, _name);
 	buf[0] = strdup("/bin/rm");
-	buf[1] = strdup(path.c_str());
+	buf[1] = strdup(_file.c_str());
 	buf[2] = NULL;
 
     if ((pid = fork()) == 0) {

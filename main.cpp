@@ -19,6 +19,7 @@ int main(int argc, char **argv, char **env) {
     try {
         parser.open(confige);
         servers = parser.get_servers();
+        // print_servers(servers);
         handler_connects.start(servers);
     } catch(std::exception &error) {
         std::cout << "Error: " << error.what() << std::endl;
