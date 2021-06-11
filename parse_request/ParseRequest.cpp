@@ -34,14 +34,20 @@ Request ParseRequest::get_request(void) {
 void ParseRequest::open(string request) {
     size_t          position_body = request.find("\r\n\r\n");
 
+    std::cout << "\n\n" << request << "\n";
+
     if (position_body == std::string::npos) {
         position_body = request.size();
     }
+    std::cout << "FLAG 1\n";
     string          request_without_body = request.substr(0, position_body);
+    std::cout << "FLAG 2\n";
     vector_string   data = split_line(request_without_body, "\r\n");
+    std::cout << "FLAG 3\n";
     string          starting_line = data[0];
+    std::cout << "FLAG 4\n";
     vector_string   headers(data.begin() + 1, data.end());
-    std::cout << ">>>> " << position_body << " " << request.size() << "\n";
+    std::cout << "FLAG 5\n";
     string          body;
 
     if(position_body == request.size()) {

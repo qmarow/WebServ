@@ -22,10 +22,12 @@ void URL::parse(string url_string) {
     _keys_argv = vector_string();
     _values_argv = vector_string();
 
+    std::cout << "parce 1\n";
     vector_string data = split_line(url_string, "?#");
     if (data.size() != 0) {
         _path = data[0];
     }
+    std::cout << "parce 2\n";
     for (int i = 1; i < data.size(); i++) {
         vector_string key_and_value = split_line(data[i], "=");
         _keys_argv.push_back(key_and_value[0]);

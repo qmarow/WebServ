@@ -121,6 +121,7 @@ string	read_up_to_string(int fd, string s){
 
 int 	read_heandler(Client &client){
 	string tmp;
+	int i = 0;
 	char buff[2];
 	int count_read;
 
@@ -128,15 +129,20 @@ int 	read_heandler(Client &client){
 	while (1) {
 		count_read = recv(client.get_fd(), buff, 1, 0);
 		if (count_read == 0) {
+			std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!\n!!!!!!!!!!!!!!!!!!!\n";
 		    return (0);
 		}
-		tmp += string(buff);
-		if (tmp.find("\n\n") != -1) {
+		std::cout << buff[0] << "\n";
+		tmp += buff[0];
+		if (i > 0 && tmp[i] == '\n' && tmp[i - 1] == '\n') {
 			break ;
 		}
-		std::cout << tmp;
+		// if (tmp.find("\n\n") != -1) {
+		// 	break ;
+		// }
+		++i;
 	}
-	std::cout << tmp;
+	std::cout << "ЗАПРОС ЗАГОЛОВКИ \n|" << tmp << "|\n";
 	client.set_request(tmp, "");
 	return (count_read);
 }
@@ -203,10 +209,8 @@ void	HandlerConnects::parse_client(Client &client) {
 
 void	HandlerConnects::response_for_client(Client &client) {
 	string	response;
-	
-	std::cout << client.get_buffer_request();
-	std::cout << client.get_request().get_body();
 
+	std::cout << "response_for_client\n";
 	response = client.get_response();
 	std::cout << "\n\n" << response << "\n";
 	int err = send(client.get_fd(), response.c_str(), response.size(), 0);
@@ -222,6 +226,7 @@ void	HandlerConnects::handler_set_reads() {
 
 void		HandlerConnects::handler_set_writes() {
 	iter_client it = _clients.begin();
+	std::cout << "handler_set_writes\n";
 	while (it != _clients.end()) {
 		if (FD_ISSET(it->get_fd(), &_write_set)) {
 			response_for_client(*it);

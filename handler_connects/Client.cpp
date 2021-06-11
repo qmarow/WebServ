@@ -42,10 +42,17 @@ enum Status	Client::get_status() {
 std::string	Client::get_response() {
 	ParseRequest	parser;
 
+	std::cout << "get_response\n";
 	parser.open(_buffer_request);
+	std::cout << "get_response afte open\n";
+
 	_request = parser.get_request();
+	std::cout << "get_response afte get_request\n";
+
 	_url.parse(_request.get_url_string());
+	std::cout << "get_response afte get_url_string\n";
 	_response.set_request(_request);
+	std::cout << "get_response afte set_request\n";
 	shape_the_response();
 	return (_response.get_response());
 }
@@ -108,6 +115,7 @@ void		Client::shape_the_response(void) {
 	
 	shredded_url = split_line(_url.get_path(), "/");
 	server = find_location(_server, shredded_url); // shredded_url обрезается
+	print_server(server);
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
