@@ -61,6 +61,8 @@ public:
 	void				set_data_socket(struct sockaddr_in data_socket);
 	void				close_fd(void);
 
+	void				clear(void);
+
 private:
     bool        check_data_user(string str_in, string str_find);
 	void		shape_the_response(void);
@@ -70,6 +72,7 @@ private:
     bool        authorization_run(std::vector<string>, Server);
     void		index_run(Server &server);
     void		index_run(Server &server, string root, string name_file);
+	void		index_run(Server &server, vector_string shredded_url);
 	void		cgi_run(Server &server, vector_string shredded_url);
 	void		method_delete_run(Server &server, vector_string shredded_url);
 	void		method_put_run(Server &server, vector_string shredded_url);

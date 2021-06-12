@@ -18,10 +18,32 @@ File &File::operator=(const File &file) {
 File::~File() {}
 
 int		File::open_file(string root, string name) {
-    int     fd;
+    int         fd;
+    int         code_error;
+    struct stat buff;
 
     _file = get_file_with_path(root, name);
+    fd = open(_file.c_str(), O_RDONLY);
+    code_error = (fd == -1) ? 1 : 0;
+    close(fd);
+    if (fd == -1) {
+        return (1);
+    }
+    stat(_file.c_str(), &buff);
+    if (buff.st_mode & S_IFDIR) {
+        return (1);
+    }
     return (0);
+}
+
+int     File::open_file(string root, vector_string shredded_path) {
+    string name;
+
+    for (int i = 0; i < shredded_path.size(); i++) {
+        name += shredded_path[i];
+        name += (i + 1 < shredded_path.size()) ? "/" : "";
+    }
+    return (open_file(root, name));
 }
 
 int     File::open_file(vector_string shredded_path) {
@@ -34,6 +56,28 @@ int     File::open_file(vector_string shredded_path) {
     }
     name = shredded_path[shredded_path.size() - 1];
     return (open_file(root, name));
+}
+
+int     File::create_file(string root, string name) {
+    int     fd;
+    int     code_error;
+
+    _file = get_file_with_path(root, name);
+    fd = open(_file.c_str(), O_CREAT, ~0);
+    code_error = (fd == -1) ? 1 : 0;
+    return (code_error);
+}
+
+int     File::create_file(vector_string shredded_path) {
+    string root;
+    string name;
+
+    for (int i = 0; i < shredded_path.size() - 1; i++) {
+        root += shredded_path[i];
+        root += (i + 2 < shredded_path.size()) ? "/" : "";
+    }
+    name = shredded_path[shredded_path.size() - 1];
+    return (create_file(root, name));
 }
 
 int     File::append_file(string text) {

@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <string>
 #include <unistd.h>
+#include <sys/stat.h>
 #include "./../utils/UtilsString.hpp"
 
 class File {
@@ -21,7 +22,10 @@ public:
 	~File();
 
 	int				open_file(string root, string name);
+	int				open_file(string root, vector_string shredded_path);
 	int				open_file(vector_string shredded_path);
+	int				create_file(string root, string name);
+	int				create_file(vector_string shredded_path);
 	int				append_file(string text);
 	int				write_file(string text);
 	string			read_file(void);

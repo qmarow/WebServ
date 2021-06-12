@@ -221,8 +221,7 @@ int		HandlerConnects::response_for_client(Client &client) {
 	response = client.get_response();
 	int i = response.find("\n\n");
 	i += 3;
-	if (response[i] != 0) {
-		std::cout << "***********\n";
+	if (response[i] != 0 || client.get_request().get_method() == "GET") {
 		i = 1;
 	} else {
 		i = 0;
@@ -252,6 +251,8 @@ void		HandlerConnects::handler_set_writes() {
 				it->close_fd();
 				_clients.erase(it);
 				continue;
+			} else {
+				it->clear();
 			}
 			it->set_status(NULLPTR);
 		}

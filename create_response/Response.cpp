@@ -194,10 +194,23 @@ string Response::shape_the_response() {
     return (response);
 }
 
+int         Response::get_code_status(void) {
+    return (_code_status);
+}
+
+string      Response::get_body_messagee(void) {
+    return (_body_message);
+}
+
+string      Response::get_error_page(void) {
+    return (_error_page.get_name_error());
+}
+
 string Response::create_headers() {
     string response;
 
     response = "HTTP/1.1 ";
+    std::cout << "####: " << _error_page.get_name_error() << "\n";
     if (_error_page.get_name_error() == "") {
         // response += std::to_string(_code_status) + " OK\n";
         response += "200 OK\n";

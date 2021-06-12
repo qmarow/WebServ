@@ -45,7 +45,6 @@ std::string	Client::get_response() {
 	parser.open(_buffer_request);
 	_request = parser.get_request();
 	_url.parse(_request.get_url_string());
-	std::cout << _url.get_path() << "\n";
 	_response.set_request(_request);
 	shape_the_response();
 	return (_response.get_response());
@@ -97,6 +96,14 @@ void		Client::close_fd(void) {
 	close(_fd);
 }
 
+void		Client::clear(void) {
+	_status = NULLPTR;
+	_buffer_request = string();
+	_response = Response();
+	_request = Request();
+	_url = URL();
+}
+
 // PRIVATE
 
 void		Client::shape_the_response(void) {
@@ -109,10 +116,12 @@ void		Client::shape_the_response(void) {
 	
 	shredded_url = split_line(_url.get_path(), "/");
 	server = find_location(_server, shredded_url); // shredded_url обрезается
+	std::cout << "$$$$$$$$$$$$$$\n";
+	print_server(server);
+	std::cout << "$$$$$$$$$$$$$$\n";
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
-		std::cout << "ERROR\n";
 		error_run(server, 405);
 	} else if (_request.get_method() == "DELETE") {
 		method_delete_run(server, shredded_url);
@@ -139,7 +148,11 @@ void		Client::shape_the_response(void) {
     } else if (server.is_authorization(_request.get_body(), "Regist23&*&2rati43+_+-3H*74eon_01202*%^1(reg)(istr)ation")) {
 	    authorization_run();
     } else if (server.is_index()) {
-		index_run(server);
+		if (shredded_url.size() > 0) {
+			index_run(server, shredded_url);
+		} else {
+			index_run(server);
+		}
 	} else {
 		error_run(server, 404);
 	}
@@ -301,7 +314,7 @@ void			Client::method_put_run(Server &server, vector_string shredded_path) {
 		shredded_root_path.push_back(server.get_root());
 	}
 	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
-	if (file.open_file(shredded_root_path) != 0) {
+	if (file.create_file(shredded_root_path) != 0) {
 		error_run(server, 500);
 		return ;
 	}
@@ -335,7 +348,8 @@ void		Client::index_run(Server &server) {
 	File		file;
 	string		text;
 	int			code_error;
-	
+
+	std::cout << "INDEX_RUN 1\n";
 	code_error = file.open_file(server.get_root(), server.get_index()[0]);
 	if (code_error > 0) {
 		error_run(server, 404);
@@ -351,12 +365,36 @@ void		Client::index_run(Server &server, string root, string name_file) {
     string		text;
     int			code_error;
 
+	std::cout << "INDEX_RUN 2\n";
     code_error = file.open_file(root, name_file);
     if (code_error > 0) {
         error_run(server, 404);
         return ;
     }
     text = file.read_file();
+    _response.set_code_status(200);
+    _response.set_body_message(text);
+}
+
+void		Client::index_run(Server &server, vector_string shredded_url) {
+	File		file;
+    string		text;
+    int			code_error;
+
+	std::cout << "INDEX_RUN 3\n";
+	if (server.get_root().size() > 0) {
+		std::cout << "root: " << server.get_root() << "\n";
+		print_vector("shredded_url: ", shredded_url);
+		code_error = file.open_file(server.get_root(), shredded_url);
+	} else {
+		code_error = file.open_file(shredded_url);
+	}
+    if (code_error > 0) {
+        error_run(server, 404);
+        return ;
+    }
+    text = file.read_file();
+	std::cout << "read_file: " << text << "\n";
     _response.set_code_status(200);
     _response.set_body_message(text);
 }
@@ -416,9 +454,6 @@ Server& Client::find_location(Server &server, vector_string &shredded_url) {
 	int count_coincidence = -1;
 	int tmp;
 	vector_string shredded_url_location;
-
-	std::cout << "\n^^^^^^^^^^^^^^^^^^^\n";
-
 
 	keys_locations = server.get_keys_locations();
 	for (int i = 0; i < keys_locations.size(); i++) {

@@ -40,6 +40,10 @@ public:
     void    set_url_redirect(const string &redirect);
     void    set_expansion(const string &expansion); // expansion - расширение
 
+    int     get_code_status(void);
+    string  get_body_messagee(void);
+    string  get_error_page(void);
+
 private:
     string shape_the_response(void);
     string create_headers(void);
