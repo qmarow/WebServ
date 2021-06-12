@@ -51,7 +51,6 @@ std::string Request::get_method(void) {
 }
 
 std::string Request::get_url_string(void) {
-    std::cout << "******\n";
     return (_url_string);
 }
 

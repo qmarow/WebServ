@@ -23,6 +23,7 @@ enum	Status {
 	READ,
 	WRITE,
 	CLOSE,
+	NOTWRITEHEADLER,
 	NULLPTR
 };
 

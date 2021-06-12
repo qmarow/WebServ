@@ -12,9 +12,9 @@ int     find_in_headers(string str, string s) {
 
     while (i < str.size() && !(str[i] == '\n' && str[i + 1] == '\n')) {
         if (str[i + a] == s[a]) {
-            for (; str[i + a] == s[a]; ++a) {
+            for (; str[i + a] == s[a] && str[i + a] != 0 && s[a] != 0; ++a) {
             }
-            if (a == s.size() - 1) {
+            if (a == s.size() ) {
                 return (i);
             }
             a = 0;

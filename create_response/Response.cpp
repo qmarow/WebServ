@@ -76,6 +76,11 @@ string      Response::header_last_modified(string name_file) {
 }
 
 string      Response::header_content_lenght() {
+    int tmp = _body_message.size();
+    
+    if (tmp == 0) {
+        return ("");
+    }
     return ("Content-Lenght: " + std::to_string(_body_message.size()) + "\n");
 }
 
@@ -177,7 +182,7 @@ string Response::shape_the_response() {
     string response;
 
     response += create_headers();
-    response += "\n\n";
+    response += "\n";
     if (_request.get_method() != "HEAD") {
         response += get_body_message();
     }
@@ -204,12 +209,12 @@ string Response::create_headers() {
     response += header_data();
     // response += header_server();
     // response += header_last_modified("название файла");
-    // response += header_content_lenght();
-    response += header_ContentType();
+    response += header_content_lenght();
+    // response += header_ContentType();
     // response += header_content_language();
     // response += header_allow();
     // response += header_content_location();
-    response += header_location();
+    // response += header_location();
     if (_is_authorization) {
         response += header_www_authenticate();
     }
