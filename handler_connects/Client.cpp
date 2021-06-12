@@ -75,14 +75,12 @@ void		Client::set_status(enum Status x) {
 	this->_status = x;
 }
 
-void		Client::set_request(string headlers, string body_message) {
-	if (headlers != "") {
+void		Client::set_request(string headlers, int flag) {
+	if (flag == 1) {
 		this->_buffer_request = headlers;
+	} else {
+		this->_buffer_request += headlers;
 	}
-	if (body_message != ""){
-		this->_buffer_request += body_message;
-	}
-	// this->_request.set_body
 }
 
 void		Client::set_fd(int const &x) {
@@ -109,10 +107,12 @@ void		Client::shape_the_response(void) {
 	
 	shredded_url = split_line(_url.get_path(), "/");
 	server = find_location(_server, shredded_url); // shredded_url обрезается
+	// std::cout << "$$$$$$$$$$$\n";
+	// print_server(server);
+	// std::cout << "$$$$$$$$$$$\n";
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
-		std::cout << "ERROR\n";
 		error_run(server, 405);
 	} else if (_request.get_method() == "DELETE") {
 		method_delete_run(server, shredded_url);

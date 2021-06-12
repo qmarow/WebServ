@@ -64,15 +64,15 @@ void        Response::set_error_page(ErrorPage &error_page) {
 }
 
 string      Response::header_data() {
-    return ("Data: " + get_time() + "\n");
+    return ("Data: " + get_time() + "\r\n");
 }
 
 string      Response::header_server() {
-    return (string("Server: WebServ") + "\n");
+    return (string("Server: WebServ") + "\r\n");
 }
 
 string      Response::header_last_modified(string name_file) {
-    return (get_time_last_modified(name_file.c_str()) + "\n");
+    return (get_time_last_modified(name_file.c_str()) + "\r\n");
 }
 
 string      Response::header_content_lenght() {
@@ -81,7 +81,7 @@ string      Response::header_content_lenght() {
     if (tmp == 0) {
         return ("");
     }
-    return ("Content-Lenght: " + std::to_string(_body_message.size()) + "\n");
+    return ("Content-Lenght: " + std::to_string(_body_message.size()) + "\r\n");
 }
 
 string      Response::header_ContentType() {
@@ -96,7 +96,7 @@ string      Response::header_ContentType() {
         result += "; charset=";
         result += methodes_requeste[0];
     }
-    return (result + "\n");
+    return (result + "\r\n");
 }
 
 string      Response::header_content_language() {
@@ -108,7 +108,7 @@ string      Response::header_content_language() {
             res = res + tmp[i];
         }
     }
-    return (res + "\n");
+    return (res + "\r\n");
 }
 
 string      Response::header_allow() {
@@ -132,7 +132,7 @@ string      Response::header_allow() {
         // тогда посмотреть у сервера какие методы мы можем обрабатывать и записать в Allow,
         // если такого метода нет - выкинуть ошибку "405 Method Not Allowed"
     }
-    return (res + "\n");
+    return (res + "\r\n");
 }
 
 string      Response::header_content_location() {
@@ -180,12 +180,16 @@ string      Response::get_body_message(void) {
 
 string Response::shape_the_response() {
     string response;
+    
+    if (_request.get_method() != "HEAD") {
+        _body_message = get_body_message();
+    } else {
+        _body_message = "";
+    }
 
     response += create_headers();
-    response += "\n";
-    if (_request.get_method() != "HEAD") {
-        response += get_body_message();
-    }
+    response += "\r\n";
+    response += _body_message;
     // else if (_request.get_method() == "POST") {
 
     // } else if (_request.get_method() == "DELETE") {

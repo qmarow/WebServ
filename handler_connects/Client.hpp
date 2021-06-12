@@ -48,6 +48,7 @@ private:
 	URL						_url;
 
 public:
+	bool					_flag;
 	enum Status			get_status();
 	string				get_response();
 	Request     		&get_request();
@@ -55,7 +56,7 @@ public:
 	struct sockaddr_in	get_data_socket();
 	string				get_buffer_request();
 	void				set_status(enum Status x);
-	void				set_request(string headlers, string body_message);
+	void				set_request(string headlers, int flag);
 	void				set_fd(int const &x);
 	void				set_server(Server server);
 	void				set_data_socket(struct sockaddr_in data_socket);

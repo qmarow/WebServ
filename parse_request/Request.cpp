@@ -34,7 +34,7 @@ void Request::set_url(string directory) {
 }
 
 void Request::set_body(string body) {
-    _body += body;
+    _body = body;
 }
 
 void Request::set_header(string key_header, vector_string values) {
