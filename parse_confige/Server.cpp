@@ -107,9 +107,9 @@ Server &Server::get_location(string key_location) {
 }
 
 Server &Server::get_location(int index) {
-    if (index >= _locations.size()) {
-        // return (Server());
-    }
+    // if (index >= _locations.size()) {
+    //     // return (Server());
+    // }
     return (_locations[index]);
 }
 

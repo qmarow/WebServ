@@ -204,7 +204,7 @@ string Response::create_headers() {
     response += header_data();
     // response += header_server();
     // response += header_last_modified("название файла");
-    // response += header_content_lenght();
+    response += header_content_lenght();
     response += header_ContentType();
     // response += header_content_language();
     // response += header_allow();

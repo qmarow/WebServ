@@ -42,17 +42,11 @@ enum Status	Client::get_status() {
 std::string	Client::get_response() {
 	ParseRequest	parser;
 
-	std::cout << "get_response\n";
 	parser.open(_buffer_request);
-	std::cout << "get_response afte open\n";
-
 	_request = parser.get_request();
-	std::cout << "get_response afte get_request\n";
-
 	_url.parse(_request.get_url_string());
-	std::cout << "get_response afte get_url_string\n";
+	std::cout << _url.get_path() << "\n";
 	_response.set_request(_request);
-	std::cout << "get_response afte set_request\n";
 	shape_the_response();
 	return (_response.get_response());
 }
@@ -115,7 +109,6 @@ void		Client::shape_the_response(void) {
 	
 	shredded_url = split_line(_url.get_path(), "/");
 	server = find_location(_server, shredded_url); // shredded_url обрезается
-	print_server(server);
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
@@ -148,7 +141,6 @@ void		Client::shape_the_response(void) {
     } else if (server.is_index()) {
 		index_run(server);
 	} else {
-		std::cout << "!!!!!!!!!!!!!!!\n";
 		error_run(server, 404);
 	}
 }
@@ -425,18 +417,18 @@ Server& Client::find_location(Server &server, vector_string &shredded_url) {
 	int tmp;
 	vector_string shredded_url_location;
 
+	std::cout << "\n^^^^^^^^^^^^^^^^^^^\n";
+
+
 	keys_locations = server.get_keys_locations();
 	for (int i = 0; i < keys_locations.size(); i++) {
 		shredded_url_location = split_line(keys_locations[i], "/");
-		print_vector("shredded_url_location:", shredded_url_location);
-		print_vector("shredded_url:", shredded_url);
 		tmp = find_count_coincidence(shredded_url_location, shredded_url);
 		if (tmp > count_coincidence) {
 			count_coincidence = tmp;
 			index = i;
 		} else if (tmp != -1 && tmp == count_coincidence) {
-			vector_string one = vector_string(shredded_url.begin() + 
-			count_coincidence, shredded_url.end());
+			vector_string one = vector_string(shredded_url.begin() + count_coincidence, shredded_url.end());
 			vector_string two = one;
 			Server server_one = server.get_location(index);
 			Server server_two = server.get_location(i);
@@ -447,22 +439,19 @@ Server& Client::find_location(Server &server, vector_string &shredded_url) {
 			}
 		}
 	}
-	
 	if (count_coincidence != -1) {
 		Server &location = server.get_location(index);
 		shredded_url = vector_string(shredded_url.begin() + 
 			count_coincidence, shredded_url.end());
 		return (find_location(location, shredded_url));
 	}
-
 	return (server);
 }
 
 int		Client::find_count_coincidence(vector_string shredded_url_location, vector_string shredded_url) {
-	int i;
+	int i = 0;
 
-	for (i = 0; i < shredded_url_location.size()
-				&& i < shredded_url.size(); i++) {
+	for (; i < shredded_url_location.size() && i < shredded_url.size(); i++) {
 		if (shredded_url_location[i] != shredded_url[i]) {
 			break ;
 		}

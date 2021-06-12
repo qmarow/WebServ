@@ -2,6 +2,9 @@
 #define HANDLERCONNECTS_HPP
 
 #include "./Client.hpp"
+#include <stdio.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <strings.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -42,7 +45,7 @@ private:
 	void	handler_set_reads();
 	void	handler_set_writes();
 	void	response_for_client(Client &client);						
-	void	parse_client(Client &client);
+	void	parse_client(iter_client &it);
 };
 
 #endif
