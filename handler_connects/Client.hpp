@@ -48,7 +48,6 @@ private:
 	URL						_url;
 
 public:
-	bool					_flag;
 	enum Status			get_status();
 	string				get_response();
 	Request     		&get_request();
@@ -61,8 +60,11 @@ public:
 	void				set_server(Server server);
 	void				set_data_socket(struct sockaddr_in data_socket);
 	void				close_fd(void);
-
 	void				clear(void);
+
+	bool				is_first;
+	int					fd;
+	string				method;
 
 private:
     bool        check_data_user(string str_in, string str_find);

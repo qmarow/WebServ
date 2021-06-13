@@ -8,7 +8,10 @@ Client::Client(): _status(NULLPTR),\
 	_fd(int()), \
 	_server(), \
 	_response(Response()), \
-	_request(Request())
+	_request(Request()), \
+	is_first(true), \
+	fd(int()), \
+	method(string())
 {}
 
 Client::Client(int fd): _status(NULLPTR),\
@@ -16,7 +19,10 @@ Client::Client(int fd): _status(NULLPTR),\
 	_fd(fd), \
 	_server(), \
 	_response(Response()), \
-	_request(Request())
+	_request(Request()), \
+	is_first(true), \
+	fd(int()), \
+	method(string())
 {}
 
 Client::~Client() {};
@@ -33,6 +39,10 @@ Client	&Client::operator=(Client const &client) {
 	this->_server = client._server;
 	this->_response = client._response;
 	this->_request = client._request;
+
+	this->is_first = client.is_first;
+	this->fd = client.fd;
+	this->method = client.method;
 	return (*this);
 }
 
@@ -298,21 +308,21 @@ void			Client::method_post_run(Server &server, vector_string shredded_path) {
 }
 
 void			Client::method_put_run(Server &server, vector_string shredded_path) {
-	File			file;
-	vector_string	shredded_root_path;
+	// File			file;
+	// vector_string	shredded_root_path;
 
-	if (server.is_root()) {
-		shredded_root_path.push_back(server.get_root());
-	}
-	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
-	if (file.create_file(shredded_root_path) != 0) {
-		error_run(server, 500);
-		return ;
-	}
-	if (file.write_file(_request.get_body()) != 0) {
-		error_run(server, 500);
-		return ;
-	}
+	// if (server.is_root()) {
+	// 	shredded_root_path.push_back(server.get_root());
+	// }
+	// shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	// if (file.create_file(shredded_root_path) != 0) {
+	// 	error_run(server, 500);
+	// 	return ;
+	// }
+	// if (file.write_file(_request.get_body()) != 0) {
+	// 	error_run(server, 500);
+	// 	return ;
+	// }
 	_response.set_code_status(200);
 }
 

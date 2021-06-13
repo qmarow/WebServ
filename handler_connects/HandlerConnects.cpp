@@ -81,6 +81,7 @@ void	HandlerConnects::update_clients() {
 
 	for (int i = 0; i < _fds_master.size(); ++i) {
 		if (FD_ISSET(_fds_master[i], &_read_set)) {
+			std::cout << "NEW CLIENT\n";
 			fd_client = accept(_fds_master[i], (struct sockaddr*)&addr, &len); 
 			if (fd_client < 0) {
 				print_error("Error: accept client");
@@ -93,31 +94,168 @@ void	HandlerConnects::update_clients() {
 			Client client(fd_client);
 			client.set_server(_servers[i]);
 			client.set_data_socket(addr);
-			client._flag = false;
+			client.is_first = true;
 			this->_clients.push_back(client);
 		}
 	}
 }
 
-int		checking_readed_for_transfer_encoding(string buffer_request){
-	int i = buffer_request.find("\r\n\r\n");
-	int result = 0;
+std::string		get_file_name(string buffer_request){
+	int i = 0;
+	int a = 0;
+	for (; buffer_request[i] != ' '; i++) {
 
-	i += 4;
+	}
+	++i;
+	for (; buffer_request[i] != ' '; i++) {
+		if (buffer_request[i] == '/') {
+			a = i;
+		}
+	}
+
+	string result;
+	++a;
+	for (; a != i; a++) {
+		result += buffer_request[a];
+	}
+	return (result);
+}
+
+void	run_put(string buffer_request, Client &client) {
+	string 			file_name = get_file_name(buffer_request);
+
+	
+	client.fd = open(file_name.c_str(), O_CREAT | O_TRUNC | O_WRONLY, ~0);
+}
+
+std::string	read_file(int fd, int *flag) {
+    char	buffer[101];
+
+	buffer[100] = 0;
+    string	text;
+
+    while (read(fd, buffer, 100) > 0) {
+        text.append(buffer);
+		if (text.size() > 32000){
+			*flag = 1;
+			break ;
+		}
+    }
+    return (text);
+}
+
+void	run_post(string buffer_request, Client &client) {
+	File			file;
+	string 			file_name = get_file_name(buffer_request);
+	string	text;
+    int     fd;
+	
+	if (file.open_file("./", file_name) == 0) {
+		fd = open(("./" + file_name).c_str(), O_WRONLY);
+	} else {
+		fd = open(("./" + file_name).c_str(), O_CREAT | O_WRONLY, ~0);
+	}
+
+	client.fd = fd;
+}
+
+void	write_in_file(string buffer_request, int start, int end, Client &client) {
+
+	if (client.is_first) {
+		if (buffer_request.find("PUT") != -1) {
+			run_put(buffer_request, client);
+		} else if (buffer_request.find("POST") != -1) {
+			run_post(buffer_request, client);
+		}
+		client.is_first = false;
+	}
+	string			text = buffer_request.substr(start, end - start);
+	// std::cout << "/&*|" << text << "|&*\\" << "\n";
+	int code_error = write(client.fd, text.c_str(), text.size());
+    if (code_error == -1) {
+		std::cout << "Error: write_in_file\n";
+        exit(1);
+    }
+}
+
+std::string	delete_block(Client &client, int start, int end) {
+	std::string tmp = client.get_buffer_request();
+
+	tmp.erase(start, end - start);
+	client.set_request(tmp, 1);
+	return (client.get_buffer_request());
+}
+
+int		checking_readed_for_transfer_encoding(string buffer_request, int place_read, Client &client){
+	int i;
+	int dot_start;
+
+	// std::cout << "\n<<<<<<|" << buffer_request << "|>>>>>>>>\n";
+	if (place_read == 0) {
+		i = buffer_request.find("\r\n\r\n");
+		i += 4;
+		dot_start = i;
+	} else {
+		i = place_read;
+		dot_start = i;
+	}
+
+	int result = 0;
+	string tmp;
 	for (; buffer_request[i] != '\r'; i++) {
+		std::cout << "buffer[i]" << buffer_request[i] << "\n";
 		if (buffer_request[i] == 0) {
 			return (-1);
 		}
-		result *= 10;
-		result += (buffer_request[i] - '0');
+		tmp += buffer_request[i];
 	}
-	// if (result == 0) {
-	// 	return (result);
-	// }
-	result += 4;
+	result = transfer_number_system(tmp);
+	std::cout << "\nFLAG 1 \n";
+	if (result != 0)
+	{
+		++i;
+		std::cout << "result - " << result << "\n";
+		result += 1;
+		while (buffer_request[i] != 0  && buffer_request[i] != '\r' && result--) {
+			++i;
+		}
+		std::cout << "result - " << result << "\n";
+		std::cout << "buffer - " << (int)buffer_request[i] << "\n";
+		if (result != 0) {
+			return (-1);
+		}
+		++i;
+		if (!(buffer_request[i] != 0  && buffer_request[i] == '\n')) {
+			return (-1);
+		}
+		std::cout << "buffer - " << (int)buffer_request[i] << "\n";
+		++i;
+		if (buffer_request[i] == 0) {
+			return (-1);
+		}
+		// считали весь блок
+		write_in_file(buffer_request, dot_start, i, client);
+		std::string new_buffer_request = delete_block(client, dot_start, i);
+		if (buffer_request[i] != '0') {
+			if (checking_readed_for_transfer_encoding(new_buffer_request, 0, client) == 0) {
+				return (0);
+			} else {
+				return (-1);
+			}
+		}
+		std::cout << "buffer - " << (int)buffer_request[i] << "\n";
+		++i;
+	}
+	result = 4;
 	while (buffer_request[i] != 0 && result--) {
 		++i;
 	}
+	// if (result == 0) {
+	// 	write_in_file(buffer_request, dot_start, i, client);
+	// 	buffer_request = delete_block(client, dot_start, i);
+	// }
+    // 4 3 2 1 0
+	// 0 r n r n
 	return (result);
 }
 
@@ -137,12 +275,12 @@ int		checking_readed_for_content_length(string buffer_request, int content_lengt
 
 int 	read_heandler(Client &client){
 	string tmp;
-	char buff[101];
+	char buff[20001];
 	int fd = client.get_fd();
 	int count_read;
 
-	bzero(&buff, 101);
-	count_read = recv(client.get_fd(), buff, 100, 0);
+	bzero(&buff, 20001);
+	count_read = recv(client.get_fd(), buff, 20000, 0);
 	if (count_read == 0) {
 	    return (0);
 	}
@@ -179,6 +317,8 @@ void	read_body_message(Client &client) {
 	int i = find_in_headers(buffer_request, "Content-Length: ");
     int count_read;
 
+	std::cout << "READ_body_message\n";
+
     if (i != -1) {
 		i += 16;
 		i = get_number(buffer_request, i);
@@ -187,7 +327,7 @@ void	read_body_message(Client &client) {
 		}
 		client.set_status(WRITE);
 	} else if ((i = find_in_headers(buffer_request, "Transfer-Encoding: chunked")) != -1){
-		int tmp = checking_readed_for_transfer_encoding(buffer_request);
+		int tmp = checking_readed_for_transfer_encoding(buffer_request, 0, client);
 		if (tmp != 0) {
 			return ;
 		}
@@ -199,6 +339,8 @@ void	read_body_message(Client &client) {
 
 void	HandlerConnects::parse_client(iter_client &it) {
 	int result = read_heandler(*it);
+	std::cout << "read_handler\n";
+
 	if (result == 1) {
         read_body_message(*it);
     } else if (result == 0){
@@ -206,6 +348,7 @@ void	HandlerConnects::parse_client(iter_client &it) {
 		_clients.erase(it);
 	}
 
+	// std::cout << "ЗАПРОС \n|" << it->get_buffer_request() << "|\n";
 }
 
 int		HandlerConnects::response_for_client(Client &client) {
@@ -227,6 +370,7 @@ int		HandlerConnects::response_for_client(Client &client) {
 
 void	HandlerConnects::handler_set_reads() {
 	iter_client it = _clients.begin();
+
 	for (; it < _clients.end(); ++it) {
 		if (FD_ISSET(it->get_fd(), &_read_set)) {
 			parse_client(it);
@@ -237,10 +381,12 @@ void	HandlerConnects::handler_set_reads() {
 void		HandlerConnects::handler_set_writes() {
 	iter_client it = _clients.begin();
 
+	std::cout << "handler_set_writes\n";
 	while (it != _clients.end()) {
 		if (FD_ISSET(it->get_fd(), &_write_set)) {
+			std::cout << "WRITE CLIENT\n";
 			if (response_for_client(*it)) {
-				// std::cout << "DELETE CONNECTIOIN for CLIENT\n";
+				std::cout << "DELETE CONNECTIOIN for CLIENT\n";
 				it->close_fd();
 				_clients.erase(it);
 				continue;
@@ -254,7 +400,7 @@ void		HandlerConnects::handler_set_writes() {
 }
 
 void	HandlerConnects::handler_connect_client() {
-	// std::cout << "select wait...\n";
+	std::cout << "select wait...\n";
 	if (select(_max_fd + 1, &_read_set, &_write_set, NULL, NULL) < 0) {
 		print_error("Error: select");
 		return ;

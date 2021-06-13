@@ -9,7 +9,7 @@
 #include "Server.hpp"
 #include "./../utils/UtilsString.hpp"
 
-#define COUNT_KEY_WORDS 24
+#define COUNT_KEY_WORDS 22
 #define COUNT_TYPE_REQUESTS 5
 
 class ParseConfige {

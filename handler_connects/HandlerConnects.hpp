@@ -2,6 +2,7 @@
 #define HANDLERCONNECTS_HPP
 
 #include "./Client.hpp"
+#include "./../utils/TransferNumberSystem.hpp"
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
