@@ -6,6 +6,7 @@ class CGI;
 #include <vector>
 #include <string>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "./../parse_url/URL.hpp"
 #include "./../parse_confige/Server.hpp"
 #include "./../parse_request/Request.hpp"

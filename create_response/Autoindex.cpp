@@ -1,5 +1,4 @@
 #include "Autoindex.hpp"
-#include "./../utils/UtilsPrint.ipp"
 
 Autoindex::Autoindex() {
     _root = string();

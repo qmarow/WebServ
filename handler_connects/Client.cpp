@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include "./../utils/UtilsPrint.ipp"
 
 // PUBLIC
 
@@ -46,6 +47,7 @@ std::string	Client::get_response() {
 	_request = parser.get_request();
 	_url.parse(_request.get_url_string());
 	_response.set_request(_request);
+	print_request(_buffer_request);
 	shape_the_response();
 	return (_response.get_response());
 }
@@ -74,14 +76,12 @@ void		Client::set_status(enum Status x) {
 	this->_status = x;
 }
 
-void		Client::set_request(string headlers, string body_message) {
-	if (headlers != "") {
+void		Client::set_request(string headlers, int flag) {
+	if (flag == 1) {
 		this->_buffer_request = headlers;
+	} else {
+		this->_buffer_request += headlers;
 	}
-	if (body_message != ""){
-		this->_buffer_request += body_message;
-	}
-	// this->_request.set_body
 }
 
 void		Client::set_fd(int const &x) {
@@ -110,15 +110,8 @@ void		Client::shape_the_response(void) {
 	vector_string	shredded_url;
 	Server	server;
 
-//	 if (_url.get_path() == "favicon.ico") {
-//	 	return ;
-//	 }
-	
 	shredded_url = split_line(_url.get_path(), "/");
 	server = find_location(_server, shredded_url); // shredded_url обрезается
-	std::cout << "$$$$$$$$$$$$$$\n";
-	print_server(server);
-	std::cout << "$$$$$$$$$$$$$$\n";
 	if (check_error_max_body(server)) {
 		error_run(server, 413);
 	} else if (check_error_allow_methods(server.get_allow_methods())) {
@@ -139,9 +132,7 @@ void		Client::shape_the_response(void) {
         if (authorization_run(_request.get_values_header("Authorization"), server)) {
             shape_the_response_for_logged_user(shredded_url, server);
         } else {
-//            _response.set_code_status(403);
             _response.set_code_status(401);
-//            index_run(server);
         }
 	} else if (server.is_registration(_request.get_body())){
 	    registration_run(_request.get_body());
@@ -212,7 +203,7 @@ bool    Client::authorization_run(std::vector<string> value_header, Server serve
 
     int fd = open("other/user_data.txt", O_RDONLY);
     if (fd < 0) {
-        std::cout << "Error: open fd client.cpp\n";
+		print_error("Error: open fd client.cpp");
         exit(1);
     }
     string tmp = File::read_file(fd);
@@ -266,7 +257,7 @@ void	Client::cgi_run(Server &server, vector_string shredded_path) {
 	_response.set_body_message(cgi.start());
 }
 
-void     Client::registration_run(string body)  {
+void     Client::registration_run(string body) {
     string data;
     int i = 18;
     for (; body[i] != 0; i++){
@@ -274,7 +265,7 @@ void     Client::registration_run(string body)  {
     }
     int fd = open("other/user_data.txt", O_RDONLY);
     if (fd < 0) {
-        std::cout << "Error: open fd client.cpp\n";
+		print_error("Error: open fd client.cpp");
         exit(1);
     }
     string tmp = File::read_file(fd);
@@ -349,7 +340,6 @@ void		Client::index_run(Server &server) {
 	string		text;
 	int			code_error;
 
-	std::cout << "INDEX_RUN 1\n";
 	code_error = file.open_file(server.get_root(), server.get_index()[0]);
 	if (code_error > 0) {
 		error_run(server, 404);
@@ -365,7 +355,6 @@ void		Client::index_run(Server &server, string root, string name_file) {
     string		text;
     int			code_error;
 
-	std::cout << "INDEX_RUN 2\n";
     code_error = file.open_file(root, name_file);
     if (code_error > 0) {
         error_run(server, 404);
@@ -381,11 +370,11 @@ void		Client::index_run(Server &server, vector_string shredded_url) {
     string		text;
     int			code_error;
 
-	std::cout << "INDEX_RUN 3\n";
 	if (server.get_root().size() > 0) {
-		std::cout << "root: " << server.get_root() << "\n";
-		print_vector("shredded_url: ", shredded_url);
 		code_error = file.open_file(server.get_root(), shredded_url);
+		if (code_error > 0) {
+			code_error = file.open_file(server.get_root(), shredded_url, server.get_index()[0]);
+		}
 	} else {
 		code_error = file.open_file(shredded_url);
 	}
@@ -394,7 +383,6 @@ void		Client::index_run(Server &server, vector_string shredded_url) {
         return ;
     }
     text = file.read_file();
-	std::cout << "read_file: " << text << "\n";
     _response.set_code_status(200);
     _response.set_body_message(text);
 }
@@ -505,7 +493,6 @@ bool	Client::check_error_max_body(Server &server) {
 }
 
 bool	Client::check_error_allow_methods(vector_string allow_methods) {
-	print_vector("allow_methods:", allow_methods);
 	if (find_word(allow_methods, _request.get_method()) == -1) {
 		return (true);
 	}

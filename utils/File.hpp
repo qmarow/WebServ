@@ -23,6 +23,7 @@ public:
 
 	int				open_file(string root, string name);
 	int				open_file(string root, vector_string shredded_path);
+	int				open_file(string root, vector_string shredded_path, string name);
 	int				open_file(vector_string shredded_path);
 	int				create_file(string root, string name);
 	int				create_file(vector_string shredded_path);

@@ -77,24 +77,24 @@ void print_server(T server) {
     print_locations("", server, 0);
 }
 
-template <class T>
-void print_request(T request) {
-    std::cout << request.get_method() << "|" << request.get_url_string() << "\n\n";
-    std::vector<std::string> keys_headers = request.get_keys_headers();
+// template <class T>
+// void print_request(T request) {
+//     std::cout << request.get_method() << "|" << request.get_url_string() << "\n\n";
+//     std::vector<std::string> keys_headers = request.get_keys_headers();
 
-    for (int i = 0; i < keys_headers.size(); i++) {
-        std::cout << keys_headers[i] << ": ";
-        std::vector<std::string> values = request.get_values_header(keys_headers[i]);
-        int k = 0;
-        for (; k < values.size(); k++) {
-            std::cout << values[k];
-            std::cout << ((k < values.size() - 1) ? ", " : "");
-        }
-        std::cout << std::endl;
-    }
+//     for (int i = 0; i < keys_headers.size(); i++) {
+//         std::cout << keys_headers[i] << ": ";
+//         std::vector<std::string> values = request.get_values_header(keys_headers[i]);
+//         int k = 0;
+//         for (; k < values.size(); k++) {
+//             std::cout << values[k];
+//             std::cout << ((k < values.size() - 1) ? ", " : "");
+//         }
+//         std::cout << std::endl;
+//     }
 
-    std::cout << request.get_body() << std::endl;
-}
+//     std::cout << request.get_body() << std::endl;
+// }
 
 template <class T>
 void print_url(T url) {
@@ -104,4 +104,26 @@ void print_url(T url) {
         std::cout << url.at_keys(i) << ":" << url.at_values(i) << " ";
     }
     std::cout << std::endl;
+}
+
+template <class T, class T2>
+void print_start_connection(T ip, T2 port) {
+    std::cout << "\033[36m" << ip << ":" << port << "\033[0m\n";
+}
+
+template <class T>
+void print_response(T response) {
+    std::cout << "\033[32;4;24m(RESPONSE)\n[";
+    std::cout << response << "]\033[0m\n";
+}
+
+template <class T>
+void print_request(T request) {
+    std::cout << "\033[34m(REQUEST)\n[";
+    std::cout << request << "]\033[0m\n";
+}
+
+template <class T>
+void print_error(T error) {
+    std::cout << "\033[31;1;4m" << error << "\033[0m\n";
 }

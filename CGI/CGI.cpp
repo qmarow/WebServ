@@ -1,5 +1,5 @@
-#include <sys/wait.h>
 #include "CGI.hpp"
+#include "./../utils/UtilsPrint.ipp"
 
 CGI::CGI() {
     _env = vector_string();
@@ -133,13 +133,13 @@ string  CGI::start() {
     fd_write = dup(1);
     fd_file = open("./other/tmp/tmp.txt", O_CREAT | O_WRONLY | O_TRUNC, ~0);
     if ((pid = fork()) < 0) {
-        std::cout << "Error: fork\n";
+        print_error("Error: fork");
     } else if (pid == 0) {
         if (dup2(fd_file, 1) < 0) {
-            std::cout << "Error: dup2";
+            print_error("Error: dup2");
         }
         if (execve(cgi_exec.c_str(), argv_c, NULL)) {
-            std::cout << "Error execve\n";
+            print_error("Error execve");
         }
     }
     waitpid(pid, &status, 0);

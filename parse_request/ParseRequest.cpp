@@ -1,4 +1,5 @@
 #include "ParseRequest.hpp"
+#include "./../utils/UtilsPrint.ipp"
 
 // PRIVATE
 
@@ -50,7 +51,7 @@ void ParseRequest::open(string request) {
     }
     parse_starting_line(starting_line);
     parse_headers(headers);
-    // parse_body(body);
+    parse_body(body);
 }
 
 const char *ParseRequest::MissingStartLineException::what() const throw() {

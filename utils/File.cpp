@@ -46,6 +46,14 @@ int     File::open_file(string root, vector_string shredded_path) {
     return (open_file(root, name));
 }
 
+int     File::open_file(string root, vector_string shredded_path, string name) {
+    for (int i = 0; i < shredded_path.size(); i++) {
+        root += "/";
+        root += shredded_path[i];
+    }
+    return (open_file(root, name));
+}
+
 int     File::open_file(vector_string shredded_path) {
     string root;
     string name;
