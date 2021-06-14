@@ -81,7 +81,6 @@ void	HandlerConnects::update_clients() {
 
 	for (int i = 0; i < _fds_master.size(); ++i) {
 		if (FD_ISSET(_fds_master[i], &_read_set)) {
-			std::cout << "NEW CLIENT\n";
 			fd_client = accept(_fds_master[i], (struct sockaddr*)&addr, &len); 
 			if (fd_client < 0) {
 				print_error("Error: accept client");
@@ -96,6 +95,7 @@ void	HandlerConnects::update_clients() {
 			client.set_data_socket(addr);
 			client.is_first = true;
 			this->_clients.push_back(client);
+			std::cout << "ADD new clinet - " << client.is_first << "\n"; 
 		}
 	}
 }
@@ -124,17 +124,18 @@ std::string		get_file_name(string buffer_request){
 void	run_put(string buffer_request, Client &client) {
 	string 			file_name = get_file_name(buffer_request);
 
-	
+		std::cout << file_name << "\n";
+
 	client.fd = open(file_name.c_str(), O_CREAT | O_TRUNC | O_WRONLY, ~0);
 }
 
 std::string	read_file(int fd, int *flag) {
-    char	buffer[101];
+    char	buffer[32001];
 
-	buffer[100] = 0;
+	buffer[32000] = 0;
     string	text;
 
-    while (read(fd, buffer, 100) > 0) {
+    while (read(fd, buffer, 32000) > 0) {
         text.append(buffer);
 		if (text.size() > 32000){
 			*flag = 1;
@@ -147,16 +148,34 @@ std::string	read_file(int fd, int *flag) {
 void	run_post(string buffer_request, Client &client) {
 	File			file;
 	string 			file_name = get_file_name(buffer_request);
-	string	text;
     int     fd;
 	
-	if (file.open_file("./", file_name) == 0) {
-		fd = open(("./" + file_name).c_str(), O_WRONLY);
-	} else {
-		fd = open(("./" + file_name).c_str(), O_CREAT | O_WRONLY, ~0);
-	}
 
-	client.fd = fd;
+	std::cout << "\n\n\n\n\tPOST\n\n\n";
+	if (file.open_file("./", file_name) == 0) {
+
+		rename(file_name.c_str(), "tmp");
+		fd = open("tmp", O_RDONLY);
+		client.fd = open(file_name.c_str(), O_CREAT | O_TRUNC | O_WRONLY, ~0);
+
+		string text;
+		int flag = 1;
+		while (flag) {
+			flag = 0;
+			text = read_file(fd, &flag);
+			if (write(client.fd, text.c_str(), text.size()) == -1) {
+				std::cout << "Error: write_in_file\n";
+				exit(1);
+			}
+		}
+		remove("tmp");
+		std::cout << "only write\n";
+	} else {
+		client.fd = open(file_name.c_str(), O_CREAT | O_TRUNC | O_WRONLY, ~0);
+		std::cout << "create and write\n";
+	}
+		std::cout << file_name << "\n";
+
 }
 
 void	write_in_file(string buffer_request, int start, int end, Client &client) {
@@ -170,7 +189,7 @@ void	write_in_file(string buffer_request, int start, int end, Client &client) {
 		client.is_first = false;
 	}
 	string			text = buffer_request.substr(start, end - start);
-	// std::cout << "/&*|" << text << "|&*\\" << "\n";
+
 	int code_error = write(client.fd, text.c_str(), text.size());
     if (code_error == -1) {
 		std::cout << "Error: write_in_file\n";
@@ -203,24 +222,23 @@ int		checking_readed_for_transfer_encoding(string buffer_request, int place_read
 	int result = 0;
 	string tmp;
 	for (; buffer_request[i] != '\r'; i++) {
-		std::cout << "buffer[i]" << buffer_request[i] << "\n";
 		if (buffer_request[i] == 0) {
 			return (-1);
 		}
 		tmp += buffer_request[i];
 	}
 	result = transfer_number_system(tmp);
-	std::cout << "\nFLAG 1 \n";
 	if (result != 0)
 	{
 		++i;
-		std::cout << "result - " << result << "\n";
 		result += 1;
+		int dot_write = i;
+		if (buffer_request[i] == '\n') {
+			dot_write+= 1;
+		}
 		while (buffer_request[i] != 0  && buffer_request[i] != '\r' && result--) {
 			++i;
 		}
-		std::cout << "result - " << result << "\n";
-		std::cout << "buffer - " << (int)buffer_request[i] << "\n";
 		if (result != 0) {
 			return (-1);
 		}
@@ -228,13 +246,12 @@ int		checking_readed_for_transfer_encoding(string buffer_request, int place_read
 		if (!(buffer_request[i] != 0  && buffer_request[i] == '\n')) {
 			return (-1);
 		}
-		std::cout << "buffer - " << (int)buffer_request[i] << "\n";
 		++i;
 		if (buffer_request[i] == 0) {
 			return (-1);
 		}
 		// считали весь блок
-		write_in_file(buffer_request, dot_start, i, client);
+		write_in_file(buffer_request, dot_write, i - 2, client);
 		std::string new_buffer_request = delete_block(client, dot_start, i);
 		if (buffer_request[i] != '0') {
 			if (checking_readed_for_transfer_encoding(new_buffer_request, 0, client) == 0) {
@@ -243,19 +260,13 @@ int		checking_readed_for_transfer_encoding(string buffer_request, int place_read
 				return (-1);
 			}
 		}
-		std::cout << "buffer - " << (int)buffer_request[i] << "\n";
 		++i;
 	}
 	result = 4;
 	while (buffer_request[i] != 0 && result--) {
 		++i;
 	}
-	// if (result == 0) {
-	// 	write_in_file(buffer_request, dot_start, i, client);
-	// 	buffer_request = delete_block(client, dot_start, i);
-	// }
-    // 4 3 2 1 0
-	// 0 r n r n
+
 	return (result);
 }
 
@@ -317,7 +328,7 @@ void	read_body_message(Client &client) {
 	int i = find_in_headers(buffer_request, "Content-Length: ");
     int count_read;
 
-	std::cout << "READ_body_message\n";
+	// std::cout << "READ_body_message\n";
 
     if (i != -1) {
 		i += 16;
@@ -339,12 +350,13 @@ void	read_body_message(Client &client) {
 
 void	HandlerConnects::parse_client(iter_client &it) {
 	int result = read_heandler(*it);
-	std::cout << "read_handler\n";
+	// std::cout << "read_handler\n"d;
 
 	if (result == 1) {
         read_body_message(*it);
     } else if (result == 0){
 		it->close_fd();
+		close(it->fd);
 		_clients.erase(it);
 	}
 
@@ -381,13 +393,14 @@ void	HandlerConnects::handler_set_reads() {
 void		HandlerConnects::handler_set_writes() {
 	iter_client it = _clients.begin();
 
-	std::cout << "handler_set_writes\n";
+	// std::cout << "handler_set_writes\n";
 	while (it != _clients.end()) {
 		if (FD_ISSET(it->get_fd(), &_write_set)) {
-			std::cout << "WRITE CLIENT\n";
+			// std::cout << "WRITE CLIENT\n";
 			if (response_for_client(*it)) {
 				std::cout << "DELETE CONNECTIOIN for CLIENT\n";
 				it->close_fd();
+				close(it->fd);
 				_clients.erase(it);
 				continue;
 			} else {
@@ -400,7 +413,7 @@ void		HandlerConnects::handler_set_writes() {
 }
 
 void	HandlerConnects::handler_connect_client() {
-	std::cout << "select wait...\n";
+	// std::cout << "select wait...\n";
 	if (select(_max_fd + 1, &_read_set, &_write_set, NULL, NULL) < 0) {
 		print_error("Error: select");
 		return ;
@@ -412,7 +425,7 @@ void	HandlerConnects::handler_connect_client() {
 
 void	HandlerConnects::init_set_client(iter_client client) {
 	FD_SET(client->get_fd(), &_read_set);
-	// std::cout << "init_client\n";
+
 	if (client->get_status() == WRITE) {
 		FD_SET(client->get_fd(), &_write_set);
 	}

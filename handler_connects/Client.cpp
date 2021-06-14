@@ -289,21 +289,21 @@ void     Client::registration_run(string body) {
 }
 
 void			Client::method_post_run(Server &server, vector_string shredded_path) {
-	File			file;
-	vector_string	shredded_root_path;
+	// File			file;
+	// vector_string	shredded_root_path;
 
-	if (server.is_root()) {
-		shredded_root_path.push_back(server.get_root());
-	}
-	shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
-	if (file.open_file(shredded_root_path) != 0) {
-		error_run(server, 500);
-		return ;
-	}
-	if (file.append_file(_request.get_body()) != 0) {
-		error_run(server, 500);
-		return ;
-	}
+	// if (server.is_root()) {
+	// 	shredded_root_path.push_back(server.get_root());
+	// }
+	// shredded_root_path.insert(shredded_root_path.end(), shredded_path.begin(), shredded_path.end());
+	// if (file.open_file(shredded_root_path) != 0) {
+	// 	error_run(server, 500);
+	// 	return ;
+	// }
+	// if (file.append_file(_request.get_body()) != 0) {
+	// 	error_run(server, 500);
+	// 	return ;
+	// }
 	_response.set_code_status(200);
 }
 
