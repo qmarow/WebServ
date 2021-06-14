@@ -94,6 +94,7 @@ void	HandlerConnects::update_clients() {
 			client.set_server(_servers[i]);
 			client.set_data_socket(addr);
 			client.is_first = true;
+			client.fd = -1;
 			this->_clients.push_back(client);
 			std::cout << "ADD new clinet - " << client.is_first << "\n"; 
 		}
@@ -148,7 +149,7 @@ std::string	read_file(int fd, int *flag) {
 void	run_post(string buffer_request, Client &client) {
 	File			file;
 	string 			file_name = get_file_name(buffer_request);
-    int     fd;
+    int    			fd;
 	
 
 	std::cout << "\n\n\n\n\tPOST\n\n\n";
@@ -170,6 +171,7 @@ void	run_post(string buffer_request, Client &client) {
 		}
 		remove("tmp");
 		std::cout << "only write\n";
+		close(fd);
 	} else {
 		client.fd = open(file_name.c_str(), O_CREAT | O_TRUNC | O_WRONLY, ~0);
 		std::cout << "create and write\n";
@@ -356,7 +358,9 @@ void	HandlerConnects::parse_client(iter_client &it) {
         read_body_message(*it);
     } else if (result == 0){
 		it->close_fd();
-		close(it->fd);
+		if (it->fd != -1) {
+			close(it->fd);
+		}
 		_clients.erase(it);
 	}
 
@@ -399,13 +403,17 @@ void		HandlerConnects::handler_set_writes() {
 			// std::cout << "WRITE CLIENT\n";
 			if (response_for_client(*it)) {
 				std::cout << "DELETE CONNECTIOIN for CLIENT\n";
+				
+				if (it->fd != -1){
+					close(it->fd);
+				}
 				it->close_fd();
-				close(it->fd);
 				_clients.erase(it);
 				continue;
-			} else {
-				it->clear();
 			}
+			// else {
+			// 	it->clear();
+			// }
 			it->set_status(NULLPTR);
 		}
 		it++;

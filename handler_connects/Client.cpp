@@ -217,6 +217,7 @@ bool    Client::authorization_run(std::vector<string> value_header, Server serve
         exit(1);
     }
     string tmp = File::read_file(fd);
+	close(fd);
     bool res = check_data_user(tmp,user_data);
     if (!res) {
         return (false);
