@@ -305,6 +305,7 @@ void			Client::method_post_run(Server &server, vector_string shredded_path) {
 	// 	error_run(server, 500);
 	// 	return ;
 	// }
+	cgi_run(server, shredded_path);
 	_response.set_code_status(200);
 }
 

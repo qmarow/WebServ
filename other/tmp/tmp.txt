@@ -1,1 +1,9 @@
-Could not open input file: /Users/utoomey/Desktop/WebServ/other/php//autoindex
+[31;1;4mError execve[0m
+[32;4;24m(RESPONSE)
+[HTTP/1.1 200 OK
+Data: Mon, 14 Jun 2021 14:48:55 GMT
+Content-Lenght: 26
+
+[31;1;4mError execve[0m
+][0m
+DELETE CONNECTIOIN for CLIENT

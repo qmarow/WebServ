@@ -57,53 +57,76 @@ void    CGI::set_data_socket_client(sockaddr_t data_socket_client) {
 }
 
 // string  CGI::start() {
-//     int             pipes[2];
+//     std::cout << "\n\tCGI\n";
 //     int             status;
 //     pid_t           pid;
-//     string          result;
-//     string          cgi_file;
+//     // string          result;
+//     string          cgi_exec;
+//     string          cgi_script;
 //     vector_string   argv;
+//     char            **argv_c;
+//     char            **env_c;
+//     int             fd_write;
+//     int             fd_file;
 
-    
-// //    File    buf_file;
-// //    buf_file.open("./CGI", "BUFFER.txt");
 //     set_env();
-//     cgi_file =  _server.get_cgi_pass();
-//     argv.push_back(cgi_file);
-//     argv.push_back(_filename_script);
-//     if ((pipe(pipes)) <= 0)
-//         std::cout << "Error: pipe\n";
-//     // if ((dup2(pipes[0], 0) < 0) || (dup2(pipes[1], 1) < 0)) {
-//     //     std::cout << "Error: dup2";
+//     cgi_exec = "/Users/qmarowak/Desktop/WebServ/" + trim_line(_server.get_cgi_pass(), "./");
+//     // cgi_script = "/Users/utoomey/Desktop/WebServ/" + trim_line(_filename_script, "./");
+
+
+//     cgi_script = "/Users/qmarowak/Desktop/WebServ/cgi_tester";
+
+//     std::cout << "cgi_exec - " << cgi_exec << "\n";
+//     std::cout << "cgi_script - " << cgi_script << "\n";
+//     argv.push_back(cgi_exec);
+//     argv.push_back(cgi_script);
+//     // if ((pipe(pipes)) <= 0) {
+//     //     std::cout << "Error: pipe\n";
 //     // }
-//     // if (_request.get_method() == "POST") {
-//     //     std::cout << _request.get_body();
-//     // }
-//     std::cout << "flag2\n";
-//     _env.push_back("SCRIPT_FILENAME=" + _filename_script);
-//     std::cout << "flag3\n";
+//     _env.push_back("SCRIPT_FILENAME=" + cgi_script);
+//     argv_c = convert_array_string_to_char(argv);
+//     env_c = convert_array_string_to_char(_env);
+
+//     // std::cout << "ENV - " << env_c << "\n";
+//     for (int i = 0; env_c[i] != NULL; i++) {
+//         std::cout << "str " << i << ": ";
+//         // for (int a = 0; env_c[i][a] != 0; i++) {
+//             std::cout << env_c[i] << "\n";
+//     }
+//     fd_write = dup(1);
+//     int fd = open("./youpi.bla", O_RDONLY);
+//     fd_file = open("./tmp.txt", O_CREAT | O_WRONLY | O_TRUNC, ~0);
+//     if (fd_file < 0) {
+//         std::cout << "fd_file err\n";
+//         exit(1);
+//     }
 //     if ((pid = fork()) < 0) {
-//         std::cout << "Error: fork\n";
-//         close(pipes[0]);
-//         close(pipes[1]);
-//         return ("");
+//         print_error("Error: fork");
 //     } else if (pid == 0) {
-//         if (dup2(pipes[1], 1) < 0) {
-//             std::cout << "Error: dup2";
+
+//         if (dup2(fd, 0) < 0) {
+//             print_error("Error: dup2");
 //         }
-//         if (execve(cgi_file.c_str(), argv, _env)) {
-//             std::cout << "Error execve\n";
-//             close(pipes[0]);
-//             close(pipes[1]);
-//             return ("");
+//         if (dup2(fd_file, 1) < 0) {
+//             print_error("Error: dup2");
+//         }
+//         if (execve(cgi_exec.c_str(), argv_c, NULL) < 0) {
+//             print_error("Error: dup2");
 //         }
 //     }
-//     std::cout << "flag4\n";
+//     std::cout << "Waitpid...\n";
 //     waitpid(pid, &status, 0);
-//     result = File::read_file(pipes[0]);
-//     close(pipes[0]);
-//     close(pipes[1]);
-//     return (result);
+//     // std::cout << " \\/ Waitpid\n";
+//     close(fd_file);
+//     close(fd);
+//     free_array_char(argv_c, argv.size());
+//     free_array_char(env_c, _env.size());
+//     fd_file = open("./tmp.txt", O_RDONLY);
+
+//     string res = File::read_file(fd_file);
+
+//     // std::cout << "\n|" << res << "|\n";
+//     return (res);
 // }
 
 string  CGI::start() {
